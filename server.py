@@ -9,8 +9,8 @@ app = Flask(__name__)
 kit = ServoKit(channels=16)
 
 # Servo channel assignments
-PAN_SERVO = 0
-TILT_SERVO = 1
+TILT_SERVO = 0
+PAN_SERVO = 1
 ZOOM_SERVO = 2  # Only if using a zoom function
 
 # Default servo positions
@@ -44,17 +44,17 @@ def control():
     action = data.get("action")
 
     if action == "pan_left":
-        pan_angle = set_servo_angle(PAN_SERVO, pan_angle - 10)
+        pan_angle = set_servo_angle(PAN_SERVO, pan_angle - 2)
     elif action == "pan_right":
-        pan_angle = set_servo_angle(PAN_SERVO, pan_angle + 10)
+        pan_angle = set_servo_angle(PAN_SERVO, pan_angle + 2)
     elif action == "tilt_up":
-        tilt_angle = set_servo_angle(TILT_SERVO, tilt_angle - 10)
+        tilt_angle = set_servo_angle(TILT_SERVO, tilt_angle + 2)
     elif action == "tilt_down":
-        tilt_angle = set_servo_angle(TILT_SERVO, tilt_angle + 10)
+        tilt_angle = set_servo_angle(TILT_SERVO, tilt_angle - 2)
     elif action == "zoom_in":
-        zoom_level = set_servo_angle(ZOOM_SERVO, zoom_level + 10)
+        zoom_level = set_servo_angle(ZOOM_SERVO, zoom_level + 2)
     elif action == "zoom_out":
-        zoom_level = set_servo_angle(ZOOM_SERVO, zoom_level - 10)
+        zoom_level = set_servo_angle(ZOOM_SERVO, zoom_level - 2)
 
     return jsonify({"pan": pan_angle, "tilt": tilt_angle, "zoom": zoom_level})
 
