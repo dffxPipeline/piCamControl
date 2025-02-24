@@ -9,6 +9,7 @@ required_packages = [
     "flask",
     "adafruit-circuitpython-servokit",
     "opencv-python",
+    "libcap2",
     "picamera2",
     "adafruit-circuitpython-pca9685"
 ]
