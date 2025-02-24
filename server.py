@@ -8,10 +8,9 @@ def install(package):
 required_packages = [
     "flask",
     "adafruit-circuitpython-servokit",
+    "adafruit-circuitpython-pca9685",
     "opencv-python",
-    "libcap2",
-    "picamera2",
-    "adafruit-circuitpython-pca9685"
+    "picamera2"
 ]
 
 # Install missing packages
