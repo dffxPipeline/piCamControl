@@ -2,7 +2,10 @@ import subprocess
 import sys
 
 def install(package):
-    subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+    if package == "picamera2":
+        subprocess.check_call(["sudo", "apt", "install", "-y", package])
+    else:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
 
 # List of required packages
 required_packages = [
