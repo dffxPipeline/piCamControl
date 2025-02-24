@@ -2,8 +2,21 @@ from flask import Flask, render_template, request, jsonify, Response
 from adafruit_servokit import ServoKit
 import cv2
 from picamera2 import Picamera2
+import board
+import busio
+from adafruit_pca9685 import PCA9685
 
 app = Flask(__name__)
+
+# Check if servos are connected
+try:
+    i2c = busio.I2C(board.SCL, board.SDA)
+    pca = PCA9685(i2c)
+    pca.frequency = 50
+    pca.deinit()
+except Exception as e:
+    print("Servos not found. Exiting.")
+    exit(1)
 
 # Initialize PCA9685 for servo control
 kit = ServoKit(channels=16)
@@ -19,10 +32,14 @@ tilt_angle = 90
 zoom_level = 90
 
 # Initialize Arducam Hawkeye 64MP
-picam2 = Picamera2()
-config = picam2.create_preview_configuration(main={"size": (1280, 720)})
-picam2.configure(config)
-picam2.start()
+try:
+    picam2 = Picamera2()
+    config = picam2.create_preview_configuration(main={"size": (1280, 720)})
+    picam2.configure(config)
+    picam2.start()
+except Picamera2Error as e:
+    print("Arducam Hawkeye 64MP Camera not found. Exiting.")
+    exit(1)
 
 def set_servo_angle(channel, angle):
     """Clamp and set the servo angle between 0-180 degrees."""
