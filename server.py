@@ -10,13 +10,12 @@ def install(package):
             "libatlas-base-dev",
             "libhdf5-dev",
             "libhdf5-serial-dev",
-            "libatlas-base-dev",
             "libjasper-dev"
         ]
         subprocess.check_call(["sudo", "apt", "update"])
         for sys_pkg in system_packages:
             subprocess.check_call(["sudo", "apt", "install", "-y", sys_pkg])
-    elif package == "libcamera":
+    elif package == "libcamera-apps":
         subprocess.check_call(["sudo", "apt", "install", "-y", package])
     else:
         subprocess.check_call([sys.executable, "-m", "pip", "install", package])
@@ -29,7 +28,7 @@ required_packages = [
     "adafruit-circuitpython-pca9685",
     "opencv-python",
     "picamera2",
-    "libcamera"
+    "libcamera-apps"
 ]
 
 # Install missing packages
