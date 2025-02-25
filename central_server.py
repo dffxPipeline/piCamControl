@@ -4,8 +4,8 @@ app = Flask(__name__)
 
 # List of Raspberry Pi IP addresses
 raspberry_pi_ips = [
-    "192.168.1.101",
-    "192.168.1.102",
+    "192.168.48.115",
+    "192.168.48.120",
     # Add all other IP addresses here
 ]
 
