@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pan-Tilt-Zoom Control with Live Stream</title>
+    <title>Multi-Camera Live Stream</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -24,12 +24,13 @@
         }
         .video-container {
             display: flex;
+            flex-wrap: wrap;
             justify-content: center;
-            margin-bottom: 20px;
         }
-        img {
-            width: 80%;
-            max-width: 800px;
+        .video-container img {
+            width: 45%;
+            max-width: 400px;
+            margin: 10px;
             border-radius: 10px;
             box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.3);
         }
@@ -49,10 +50,15 @@
 </head>
 <body>
 
-    <h1>Pan-Tilt-Zoom Control with Live Stream</h1>
+    <h1>Multi-Camera Live Stream</h1>
 
     <div class="video-container">
-        <img src="{{ url_for('video_feed') }}" alt="Live Video Stream">
+        {% for ip in raspberry_pi_ips %}
+        <div>
+            <h3>Camera {{ loop.index }}</h3>
+            <img src="http://{{ ip }}:5000/video_feed" alt="Live Video Stream from {{ ip }}">
+        </div>
+        {% endfor %}
     </div>
 
     {% if servos_found %}
