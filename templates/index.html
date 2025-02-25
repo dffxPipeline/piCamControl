@@ -55,6 +55,7 @@
         <img src="{{ url_for('video_feed') }}" alt="Live Video Stream">
     </div>
 
+    {% if servos_found %}
     <div class="controls">
         <button onclick="sendControl('tilt_up')">Tilt Up</button>
         
@@ -70,6 +71,9 @@
             <button onclick="sendControl('zoom_out')">Zoom Out</button>
         </div>
     </div>
+    {% else %}
+    <p>Servos not found. Only live stream is available.</p>
+    {% endif %}
 
 </body>
 </html>

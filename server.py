@@ -48,12 +48,15 @@ from adafruit_pca9685 import PCA9685
 
 app = Flask(__name__)
 
+servos_found = False
+
 # Check if servos are connected
 try:
     i2c = busio.I2C(board.SCL, board.SDA)
     pca = PCA9685(i2c)
     pca.frequency = 50
     pca.deinit()
+    servos_found = True
 except Exception as e:
     print("Servos not found. Checking for Camera.")
     try:
@@ -94,7 +97,7 @@ def set_servo_angle(channel, angle):
 @app.route('/')
 def index():
     """Render HTML page with controls and video stream."""
-    return render_template('index.html')
+    return render_template('index.html', servos_found=servos_found)
 
 @app.route('/control', methods=['POST'])
 def control():
