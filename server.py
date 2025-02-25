@@ -42,7 +42,7 @@ for package in required_packages:
 from flask import Flask, render_template, request, jsonify, Response
 from adafruit_servokit import ServoKit
 import cv2
-from picamera2 import Picamera2, Picamera2Error
+from picamera2 import Picamera2
 import board
 import busio
 from adafruit_pca9685 import PCA9685
@@ -69,7 +69,7 @@ except Exception as e:
             print("Arducam Hawkeye 64 MP Camera found.")
         else:
             print("Raspberry Pi HQ Camera found.")
-    except Picamera2Error as e:
+    except Exception as e:
         print("Camera not found. Exiting.")
         exit(1)
 else:
