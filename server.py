@@ -2,8 +2,10 @@ import subprocess
 import sys
 
 def install(package):
-    if package == "python3-picamera2":
-        # Install system packages first
+    if package == "picamera2":
+        subprocess.check_call(["sudo", "apt", "install", "-y", "ffmpeg"])
+        subprocess.check_call(["sudo", "apt", "install", "-y", package])
+    elif package == "system_packages":
         system_packages = [
             "libcblas-dev",
             "libhdf5-dev",
@@ -16,18 +18,17 @@ def install(package):
         subprocess.check_call(["sudo", "apt", "update"])
         for sys_pkg in system_packages:
             subprocess.check_call(["sudo", "apt", "install", "-y", sys_pkg])
-        # Install picamera2
-        subprocess.check_call(["sudo", "apt", "install", "-y", package])
     else:
         subprocess.check_call([sys.executable, "-m", "pip", "install", package])
 
 # List of required packages
 required_packages = [
+    "system_packages",
     "flask",
     "adafruit-circuitpython-servokit",
     "adafruit-circuitpython-pca9685",
     "opencv-python",
-    "python3-picamera2"
+    "picamera2"
 ]
 
 # Install missing packages
