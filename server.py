@@ -7,13 +7,11 @@ def install(package):
         subprocess.check_call(["sudo", "apt", "install", "-y", package])
     elif package == "system_packages":
         system_packages = [
-            "libcblas-dev",
+            "libatlas-base-dev",
             "libhdf5-dev",
             "libhdf5-serial-dev",
             "libatlas-base-dev",
-            "libjasper-dev",
-            "libqtgui4",
-            "libqt4-test"
+            "libjasper-dev"
         ]
         subprocess.check_call(["sudo", "apt", "update"])
         for sys_pkg in system_packages:
