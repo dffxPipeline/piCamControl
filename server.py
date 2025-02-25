@@ -122,6 +122,11 @@ def control():
 
     return jsonify({"pan": pan_angle, "tilt": tilt_angle, "zoom": zoom_level})
 
+@app.route('/servos_status', methods=['GET'])
+def servos_status():
+    """Endpoint to get the status of servos."""
+    return jsonify({"servos_found": servos_found})
+
 def generate_frames():
     """Continuously capture frames from the camera and stream via Flask."""
     while True:
