@@ -3,6 +3,20 @@ import sys
 
 def install(package):
     if package == "python3-picamera2":
+        # Install system packages first
+        system_packages = [
+            "libcblas-dev",
+            "libhdf5-dev",
+            "libhdf5-serial-dev",
+            "libatlas-base-dev",
+            "libjasper-dev",
+            "libqtgui4",
+            "libqt4-test"
+        ]
+        subprocess.check_call(["sudo", "apt", "update"])
+        for sys_pkg in system_packages:
+            subprocess.check_call(["sudo", "apt", "install", "-y", sys_pkg])
+        # Install picamera2
         subprocess.check_call(["sudo", "apt", "install", "-y", package])
     else:
         subprocess.check_call([sys.executable, "-m", "pip", "install", package])
