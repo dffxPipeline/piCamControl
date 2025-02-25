@@ -16,6 +16,8 @@ def install(package):
         subprocess.check_call(["sudo", "apt", "update"])
         for sys_pkg in system_packages:
             subprocess.check_call(["sudo", "apt", "install", "-y", sys_pkg])
+    elif package == "libcamera":
+        subprocess.check_call(["sudo", "apt", "install", "-y", package])
     else:
         subprocess.check_call([sys.executable, "-m", "pip", "install", package])
 
@@ -26,7 +28,8 @@ required_packages = [
     "adafruit-circuitpython-servokit",
     "adafruit-circuitpython-pca9685",
     "opencv-python",
-    "picamera2"
+    "picamera2",
+    "libcamera"
 ]
 
 # Install missing packages
