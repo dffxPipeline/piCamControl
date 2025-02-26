@@ -162,11 +162,11 @@ def record():
             #     return jsonify({"success": False, "error": "Camera is in use by another process"})
             try:
                 # Stop the video stream
-                print("Stopping video stream...")
-                picam2.stop()
+                #print("Stopping video stream...")
+                #picam2.stop()
                 
                 # Add a delay to ensure the camera is released
-                time.sleep(2)
+                #time.sleep(2)
                 
                 # Start the recording process using Picamera2
                 print("Starting video recording...")
@@ -185,11 +185,11 @@ def record():
             recording_process = None
             
             # Add a delay to ensure the recording process is terminated
-            time.sleep(2)
+            #time.sleep(2)
             
             # Restart the video stream
-            print("Starting video stream...")
-            picam2.start()
+            #print("Starting video stream...")
+            #picam2.start()
             
             return jsonify({"success": True})
         else:
