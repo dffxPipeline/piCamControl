@@ -160,13 +160,14 @@ def record():
     if action == "start_recording":
         if recording_process is None:
             try:
-                print("Starting video recording...")
+                print("Stopping video stream...")
                 picam2.stop()  # Stop the camera to ensure no conflicts
                 video_output = "video.h264"
                 encoder = H264Encoder()
+                print("Starting video recording...")
                 picam2.start_recording(encoder, output=video_output)
-                recording_process = True
                 print("Recording started successfully.")
+                recording_process = True
                 return jsonify({"success": True, "message": "Recording started successfully."})
             except Exception as e:
                 print(f"Failed to start recording: {e}")
