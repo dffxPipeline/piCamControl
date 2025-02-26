@@ -161,6 +161,7 @@ def record():
         if recording_process is None:
             try:
                 print("Starting video recording...")
+                picam2.stop()  # Stop the camera to ensure no conflicts
                 video_output = "video.h264"
                 encoder = H264Encoder()
                 picam2.start_recording(encoder, output=video_output)
@@ -185,10 +186,6 @@ def record():
                 
                 # Restart the video stream
                 print("Restarting video stream...")
-                picam2.stop()
-                time.sleep(2)  # Ensure the camera is properly stopped
-                config = picam2.create_preview_configuration(main={"size": (1280, 720)})
-                picam2.configure(config)
                 picam2.start()
                 
                 print("Recording stopped successfully.")
