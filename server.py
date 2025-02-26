@@ -1,5 +1,6 @@
 import subprocess
 import sys
+import os
 
 def install(package):
     if package == "picamera2":
@@ -50,6 +51,7 @@ app = Flask(__name__)
 
 servos_found = False
 picam2 = None  # Define picam2 outside the try block
+recording_process = None  # To keep track of the recording process
 
 # Check if servos are connected
 try:
@@ -131,6 +133,29 @@ def control():
 def servos_status():
     """Endpoint to get the status of servos."""
     return jsonify({"servos_found": servos_found})
+
+@app.route('/record', methods=['POST'])
+def record():
+    """Handle start and stop recording requests."""
+    global recording_process
+    data = request.get_json()
+    action = data.get("action")
+
+    if action == "start_recording":
+        if recording_process is None:
+            recording_process = subprocess.Popen([
+                "libcamera-vid", "-o", "/video_output/video.h264", "-t", "0"
+            ])
+            return jsonify({"success": True})
+        else:
+            return jsonify({"success": False, "error": "Already recording"})
+    elif action == "stop_recording":
+        if recording_process is not None:
+            recording_process.terminate()
+            recording_process = None
+            return jsonify({"success": True})
+        else:
+            return jsonify({"success": False, "error": "Not recording"})
 
 def generate_frames():
     """Continuously capture frames from the camera and stream via Flask."""

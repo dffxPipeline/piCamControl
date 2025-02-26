@@ -1,8 +1,6 @@
 from flask import Flask, render_template, request, jsonify
-#import board
-#import busio
-#from adafruit_pca9685 import PCA9685
 import requests
+import os
 
 app = Flask(__name__)
 
@@ -43,6 +41,19 @@ def control():
     except requests.RequestException as e:
         print(f"Error sending control action to {ip}: {e}")
         return jsonify({'error': str(e)}), 500
+
+@app.route('/record', methods=['POST'])
+def record():
+    action = request.json.get('action')
+    success = True
+    for ip in raspberry_pi_ips:
+        try:
+            response = requests.post(f'http://{ip}:5000/record', json={'action': action})
+            response.raise_for_status()
+        except requests.RequestException as e:
+            print(f"Error sending record action to {ip}: {e}")
+            success = False
+    return jsonify({'success': success})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)

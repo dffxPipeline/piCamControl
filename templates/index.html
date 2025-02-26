@@ -46,11 +46,31 @@
             .then(data => console.log('Updated angles:', data))
             .catch(error => console.error('Error:', error));
         }
+
+        function toggleRecording() {
+            const recordButton = document.getElementById('recordButton');
+            const action = recordButton.dataset.recording === 'true' ? 'stop_recording' : 'start_recording';
+            fetch('/record', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: action })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    recordButton.dataset.recording = action === 'start_recording' ? 'true' : 'false';
+                    recordButton.textContent = action === 'start_recording' ? 'Stop Recording' : 'Start Recording';
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
     </script>
 </head>
 <body>
 
     <h1>Multi-Camera Live Stream</h1>
+
+    <button id="recordButton" data-recording="false" onclick="toggleRecording()">Start Recording</button>
 
     <div class="video-container">
         {% for ip in raspberry_pi_ips %}
