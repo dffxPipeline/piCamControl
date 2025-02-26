@@ -170,7 +170,7 @@ def record():
                 
                 # Start the recording process using Picamera2
                 print("Starting video recording...")
-                picam2.start_recording("video.h264")
+                picam2.start_recording("video.h264", "h264")
                 recording_process = True
                 print("Recording started successfully.")
                 return jsonify({"success": True, "message": "Recording started successfully."})
