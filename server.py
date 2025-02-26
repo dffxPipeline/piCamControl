@@ -143,16 +143,28 @@ def record():
 
     if action == "start_recording":
         if recording_process is None:
-            recording_process = subprocess.Popen([
-                "libcamera-vid", "-o", "/video_output/video.h264", "-t", "0"
-            ])
-            return jsonify({"success": True})
+            try:
+                # Stop the video stream
+                picam2.stop()
+                
+                # Start the recording process
+                recording_process = subprocess.Popen([
+                    "libcamera-vid", "-o", "/video_output/video.h264", "-t", "0"
+                ])
+                return jsonify({"success": True})
+            except subprocess.CalledProcessError as e:
+                return jsonify({"success": False, "error": str(e)})
         else:
             return jsonify({"success": False, "error": "Already recording"})
     elif action == "stop_recording":
         if recording_process is not None:
+            # Stop the recording process
             recording_process.terminate()
             recording_process = None
+            
+            # Restart the video stream
+            picam2.start()
+            
             return jsonify({"success": True})
         else:
             return jsonify({"success": False, "error": "Not recording"})
@@ -160,12 +172,16 @@ def record():
 def generate_frames():
     """Continuously capture frames from the camera and stream via Flask."""
     while True:
-        frame = picam2.capture_array()
-        _, buffer = cv2.imencode('.jpg', frame)
-        frame_bytes = buffer.tobytes()
+        if picam2 is not None:
+            frame = picam2.capture_array()
+            _, buffer = cv2.imencode('.jpg', frame)
+            frame_bytes = buffer.tobytes()
 
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+        else:
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + b'\r\n')
 
 @app.route('/video_feed')
 def video_feed():
