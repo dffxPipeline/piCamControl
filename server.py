@@ -49,6 +49,7 @@ from adafruit_pca9685 import PCA9685
 app = Flask(__name__)
 
 servos_found = False
+picam2 = None  # Define picam2 outside the try block
 
 # Check if servos are connected
 try:
