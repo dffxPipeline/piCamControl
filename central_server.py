@@ -1,4 +1,4 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, request, jsonify
 #import board
 #import busio
 #from adafruit_pca9685 import PCA9685
@@ -13,28 +13,36 @@ raspberry_pi_ips = [
     # Add all other IP addresses here
 ]
 
-import random
-
 def get_servos_status():
-    try:
-        # Choose a random Raspberry Pi IP address
-        server_ip = random.choice(raspberry_pi_ips)
-        response = requests.get(f'http://{server_ip}:5000/servos_status')
-        response.raise_for_status()
-        data = response.json()
-        return data.get("servos_found", False)
-    except requests.RequestException as e:
-        print(f"Error getting servos status: {e}")
-        return False
-
-# Example usage
-servos_found = get_servos_status()
-print(f"Servos found: {servos_found}")
+    servos_status = {}
+    for ip in raspberry_pi_ips:
+        try:
+            response = requests.get(f'http://{ip}:5000/servos_status')
+            response.raise_for_status()
+            data = response.json()
+            servos_status[ip] = data.get("servos_found", False)
+        except requests.RequestException as e:
+            print(f"Error getting servos status from {ip}: {e}")
+            servos_status[ip] = False
+    return servos_status
 
 @app.route('/')
 def index():
     """Render HTML page with all camera feeds."""
-    return render_template('index.html', raspberry_pi_ips=raspberry_pi_ips, servos_found=servos_found)
+    servos_status = get_servos_status()
+    return render_template('index.html', raspberry_pi_ips=raspberry_pi_ips, servos_status=servos_status)
+
+@app.route('/control', methods=['POST'])
+def control():
+    action = request.json.get('action')
+    ip = request.json.get('ip')
+    try:
+        response = requests.post(f'http://{ip}:5000/control', json={'action': action})
+        response.raise_for_status()
+        return jsonify(response.json())
+    except requests.RequestException as e:
+        print(f"Error sending control action to {ip}: {e}")
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)

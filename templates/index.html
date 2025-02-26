@@ -36,11 +36,11 @@
         }
     </style>
     <script>
-        function sendControl(action) {
+        function sendControl(action, ip) {
             fetch('/control', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ action: action })
+                body: JSON.stringify({ action: action, ip: ip })
             })
             .then(response => response.json())
             .then(data => console.log('Updated angles:', data))
@@ -57,29 +57,28 @@
         <div>
             <h3>Camera {{ loop.index }}</h3>
             <img src="http://{{ ip }}:5000/video_feed" alt="Live Video Stream from {{ ip }}">
+            {% if servos_status[ip] %}
+            <div class="controls">
+                <button onclick="sendControl('tilt_up', '{{ ip }}')">Tilt Up</button>
+                
+                <div>
+                    <button onclick="sendControl('pan_left', '{{ ip }}')">Pan Left</button>
+                    <button onclick="sendControl('pan_right', '{{ ip }}')">Pan Right</button>
+                </div>
+
+                <button onclick="sendControl('tilt_down', '{{ ip }}')">Tilt Down</button>
+
+                <div>
+                    <button onclick="sendControl('zoom_in', '{{ ip }}')">Zoom In</button>
+                    <button onclick="sendControl('zoom_out', '{{ ip }}')">Zoom Out</button>
+                </div>
+            </div>
+            {% else %}
+            <p>Servos not found for this camera. Only live stream is available.</p>
+            {% endif %}
         </div>
         {% endfor %}
     </div>
-
-    {% if servos_found %}
-    <div class="controls">
-        <button onclick="sendControl('tilt_up')">Tilt Up</button>
-        
-        <div>
-            <button onclick="sendControl('pan_left')">Pan Left</button>
-            <button onclick="sendControl('pan_right')">Pan Right</button>
-        </div>
-
-        <button onclick="sendControl('tilt_down')">Tilt Down</button>
-
-        <div>
-            <button onclick="sendControl('zoom_in')">Zoom In</button>
-            <button onclick="sendControl('zoom_out')">Zoom Out</button>
-        </div>
-    </div>
-    {% else %}
-    <p>Servos not found. Only live stream is available.</p>
-    {% endif %}
 
 </body>
 </html>
