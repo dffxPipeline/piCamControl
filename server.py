@@ -172,27 +172,36 @@ def record():
                 print("Starting video recording...")
                 picam2.start_recording("video.h264")
                 recording_process = True
-                return jsonify({"success": True})
+                print("Recording started successfully.")
+                return jsonify({"success": True, "message": "Recording started successfully."})
             except Exception as e:
+                print(f"Failed to start recording: {e}")
                 return jsonify({"success": False, "error": str(e)})
         else:
+            print("Recording is already in progress.")
             return jsonify({"success": False, "error": "Already recording"})
     elif action == "stop_recording":
         if recording_process is not None:
-            # Stop the recording process using Picamera2
-            print("Stopping video recording...")
-            picam2.stop_recording()
-            recording_process = None
-            
-            # Add a delay to ensure the recording process is terminated
-            #time.sleep(2)
-            
-            # Restart the video stream
-            #print("Starting video stream...")
-            #picam2.start()
-            
-            return jsonify({"success": True})
+            try:
+                # Stop the recording process using Picamera2
+                print("Stopping video recording...")
+                picam2.stop_recording()
+                recording_process = None
+                
+                # Add a delay to ensure the recording process is terminated
+                #time.sleep(2)
+                
+                # Restart the video stream
+                #print("Starting video stream...")
+                #picam2.start()
+                
+                print("Recording stopped successfully.")
+                return jsonify({"success": True, "message": "Recording stopped successfully."})
+            except Exception as e:
+                print(f"Failed to stop recording: {e}")
+                return jsonify({"success": False, "error": str(e)})
         else:
+            print("No recording is in progress.")
             return jsonify({"success": False, "error": "Not recording"})
 
 def generate_frames():
