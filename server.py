@@ -160,8 +160,8 @@ def record():
     if action == "start_recording":
         if recording_process is None:
             try:
-                print("Stopping video stream...")
-                picam2.stop()  # Stop the camera to ensure no conflicts
+                #print("Stopping video stream...")
+                #picam2.stop()  # Stop the camera to ensure no conflicts
                 video_output = "video.h264"
                 encoder = H264Encoder()
                 print("Starting video recording...")
@@ -183,11 +183,11 @@ def record():
                 recording_process = None
                 
                 # Add a delay to ensure the recording process is terminated
-                time.sleep(2)
+                #time.sleep(2)
                 
                 # Restart the video stream
-                print("Restarting video stream...")
-                picam2.start()
+                #print("Restarting video stream...")
+                #picam2.start()
                 
                 print("Recording stopped successfully.")
                 return jsonify({"success": True, "message": "Recording stopped successfully."})
