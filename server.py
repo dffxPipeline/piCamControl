@@ -149,7 +149,7 @@ def record():
                 
                 # Start the recording process
                 recording_process = subprocess.Popen([
-                    "libcamera-vid", "-o", "/video_output/video.h264", "-t", "0"
+                    "libcamera-vid", "-o", "video.h264", "-t", "0"
                 ])
                 return jsonify({"success": True})
             except subprocess.CalledProcessError as e:
