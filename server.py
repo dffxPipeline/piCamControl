@@ -136,20 +136,12 @@ def servos_status():
     return jsonify({"servos_found": servos_found})
 
 def is_camera_in_use():
-    """Check if the camera is being used by another process and stop it."""
+    """Check if the camera is being used by another process and print the details."""
     try:
         result = subprocess.run(['lsof', '/dev/video0'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if result.stdout != b'':
             print("Camera is in use by the following processes:")
             print(result.stdout.decode('utf-8'))
-            
-            # Extract the PID of the process using the camera
-            lines = result.stdout.decode('utf-8').split('\n')
-            for line in lines[1:]:
-                if line:
-                    pid = int(line.split()[1])
-                    print(f"Stopping process with PID: {pid}")
-                    subprocess.run(['kill', '-9', str(pid)])
             return True
         return False
     except Exception as e:
