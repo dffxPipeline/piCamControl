@@ -101,6 +101,18 @@ def set_servo_angle(channel, angle):
     kit.servo[channel].angle = angle
     return angle
 
+def start_camera_stream():
+    """Start the camera stream."""
+    global picam2
+    if (picam2 is not None):
+        picam2.start()
+
+def stop_camera_stream():
+    """Stop the camera stream."""
+    global picam2
+    if (picam2 is not None):
+        picam2.stop()
+
 @app.route('/')
 def index():
     """Render HTML page with controls and video stream."""
@@ -143,6 +155,7 @@ def record():
 
     if action == "start_recording":
         if recording_process is None:
+            stop_camera_stream()  # Stop the stream before starting recording
             recording_process = subprocess.Popen([
                 "libcamera-vid", "-o", "/video_output/video.h264", "-t", "0"
             ])
@@ -153,6 +166,7 @@ def record():
         if recording_process is not None:
             recording_process.terminate()
             recording_process = None
+            start_camera_stream()  # Resume the stream after stopping recording
             return jsonify({"success": True})
         else:
             return jsonify({"success": False, "error": "Not recording"})
