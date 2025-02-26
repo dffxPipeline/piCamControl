@@ -172,11 +172,9 @@ def record():
                 
                 # Start the recording process using Picamera2
                 print("Starting video recording...")
-                #video_output = FfmpegOutput("video.h264")
                 video_output = "video.h264"
                 encoder = H264Encoder()
                 picam2.start_recording(encoder,output=video_output)
-                #picam2.start_recording(cv2.VideoWriter("video.mp4", cv2.VideoWriter_fourcc(*'mp4v'), 30, (1280, 720)))
                 recording_process = True
                 print("Recording started successfully.")
                 return jsonify({"success": True, "message": "Recording started successfully."})
@@ -195,11 +193,11 @@ def record():
                 recording_process = None
                 
                 # Add a delay to ensure the recording process is terminated
-                #time.sleep(2)
+                time.sleep(2)
                 
                 # Restart the video stream
-                #print("Starting video stream...")
-                #picam2.start()
+                print("Starting video stream...")
+                picam2.start()
                 
                 print("Recording stopped successfully.")
                 return jsonify({"success": True, "message": "Recording stopped successfully."})
