@@ -169,11 +169,17 @@ def record():
                 
                 # Add a delay to ensure the camera is released
                 #time.sleep(2)
+
+                # Reconfigure for video recording
+                video_config = picam2.create_video_configuration()
+                picam2.configure(video_config)
                 
                 # Start the recording process using Picamera2
                 print("Starting video recording...")
-                video_output = cv2.VideoWriter("video.mp4", cv2.VideoWriter_fourcc(*'mp4v'), 30, (1280, 720))
-                picam2.start_recording(video_output)
+
+                #video_output = cv2.VideoWriter("video.mp4", cv2.VideoWriter_fourcc(*'mp4v'), 30, (1280, 720))
+                #picam2.start_recording(video_output)
+                picam2.start_recording(H264Encoder(), FfmpegOutput("video.mp4"))
                 recording_process = True
                 print("Recording started successfully.")
                 return jsonify({"success": True, "message": "Recording started successfully."})
