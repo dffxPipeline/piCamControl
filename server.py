@@ -164,22 +164,18 @@ def record():
             #     return jsonify({"success": False, "error": "Camera is in use by another process"})
             try:
                 # Stop the video stream
-                print("Stopping video stream...")
-                picam2.stop()
+                #print("Stopping video stream...")
+                #picam2.stop()
                 
                 # Add a delay to ensure the camera is released
-                time.sleep(2)
-
-                # Reconfigure for video recording
-                video_config = picam2.create_video_configuration()
-                picam2.configure(video_config)
+                #time.sleep(2)
                 
                 # Start the recording process using Picamera2
                 print("Starting video recording...")
-
-                #video_output = cv2.VideoWriter("video.mp4", cv2.VideoWriter_fourcc(*'mp4v'), 30, (1280, 720))
-                #picam2.start_recording(video_output)
-                picam2.start_recording(H264Encoder(), FfmpegOutput("video.mp4"))
+                video_output = FfmpegOutput("video.mp4")
+                encoder = H264Encoder(10000000)
+                picam2.start_recording(encoder,output=video_output)
+                #picam2.start_recording(cv2.VideoWriter("video.mp4", cv2.VideoWriter_fourcc(*'mp4v'), 30, (1280, 720)))
                 recording_process = True
                 print("Recording started successfully.")
                 return jsonify({"success": True, "message": "Recording started successfully."})
@@ -198,11 +194,11 @@ def record():
                 recording_process = None
                 
                 # Add a delay to ensure the recording process is terminated
-                time.sleep(2)
+                #time.sleep(2)
                 
                 # Restart the video stream
-                print("Starting video stream...")
-                picam2.start()
+                #print("Starting video stream...")
+                #picam2.start()
                 
                 print("Recording stopped successfully.")
                 return jsonify({"success": True, "message": "Recording stopped successfully."})
