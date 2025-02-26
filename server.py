@@ -135,6 +135,15 @@ def servos_status():
     """Endpoint to get the status of servos."""
     return jsonify({"servos_found": servos_found})
 
+def is_camera_in_use():
+    """Check if the camera is being used by another process."""
+    try:
+        result = subprocess.run(['lsof', '/dev/video0'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return result.stdout != b''
+    except Exception as e:
+        print(f"Error checking camera usage: {e}")
+        return False
+
 @app.route('/record', methods=['POST'])
 def record():
     """Handle start and stop recording requests."""
@@ -144,6 +153,8 @@ def record():
 
     if action == "start_recording":
         if recording_process is None:
+            if is_camera_in_use():
+                return jsonify({"success": False, "error": "Camera is in use by another process"})
             try:
                 # Stop the video stream
                 picam2.stop()
