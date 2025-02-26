@@ -168,21 +168,20 @@ def record():
                 # Add a delay to ensure the camera is released
                 time.sleep(2)
                 
-                # Start the recording process
+                # Start the recording process using Picamera2
                 print("Starting video recording...")
-                recording_process = subprocess.Popen([
-                    "libcamera-vid", "-o", "video.h264", "-t", "0"
-                ])
+                picam2.start_recording("video.h264")
+                recording_process = True
                 return jsonify({"success": True})
-            except subprocess.CalledProcessError as e:
+            except Exception as e:
                 return jsonify({"success": False, "error": str(e)})
         else:
             return jsonify({"success": False, "error": "Already recording"})
     elif action == "stop_recording":
         if recording_process is not None:
-            # Stop the recording process
+            # Stop the recording process using Picamera2
             print("Stopping video recording...")
-            recording_process.terminate()
+            picam2.stop_recording()
             recording_process = None
             
             # Add a delay to ensure the recording process is terminated
