@@ -59,23 +59,26 @@ try:
     pca.deinit()
     servos_found = True
 except Exception as e:
-    print("Servos not found. Checking for Camera.")
-    try:
-        picam2 = Picamera2()
-        config = picam2.create_preview_configuration(main={"size": (1280, 720)})
-        picam2.configure(config)
-        picam2.start()
-        
-        # Check and print camera type
-        camera_info = picam2.camera_properties
-        if "Arducam" in camera_info.get("CameraName", ""):
-            print("Arducam Hawkeye 64 MP Camera found.")
-        else:
-            print("Raspberry Pi HQ Camera found.")
-    except Exception as e:
-        print("Camera not found. Exiting.")
-        exit(1)
-else:
+    print("Servos not found.")
+
+# Initialize camera
+try:
+    picam2 = Picamera2()
+    config = picam2.create_preview_configuration(main={"size": (1280, 720)})
+    picam2.configure(config)
+    picam2.start()
+    
+    # Check and print camera type
+    camera_info = picam2.camera_properties
+    if "Arducam" in camera_info.get("CameraName", ""):
+        print("Arducam Hawkeye 64 MP Camera found.")
+    else:
+        print("Raspberry Pi HQ Camera found.")
+except Exception as e:
+    print("Camera not found. Exiting.")
+    exit(1)
+
+if servos_found:
     # Initialize PCA9685 for servo control
     kit = ServoKit(channels=16)
 
