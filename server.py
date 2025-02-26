@@ -159,22 +159,11 @@ def record():
 
     if action == "start_recording":
         if recording_process is None:
-            # if is_camera_in_use():
-            #     print("Camera is in use by another process.")
-            #     return jsonify({"success": False, "error": "Camera is in use by another process"})
             try:
-                # Stop the video stream
-                #print("Stopping video stream...")
-                #picam2.stop()
-                
-                # Add a delay to ensure the camera is released
-                #time.sleep(2)
-                
-                # Start the recording process using Picamera2
                 print("Starting video recording...")
                 video_output = "video.h264"
                 encoder = H264Encoder()
-                picam2.start_recording(encoder,output=video_output)
+                picam2.start_recording(encoder, output=video_output)
                 recording_process = True
                 print("Recording started successfully.")
                 return jsonify({"success": True, "message": "Recording started successfully."})
@@ -187,7 +176,6 @@ def record():
     elif action == "stop_recording":
         if recording_process is not None:
             try:
-                # Stop the recording process using Picamera2
                 print("Stopping video recording...")
                 picam2.stop_recording()
                 recording_process = None
@@ -197,6 +185,8 @@ def record():
                 
                 # Restart the video stream
                 print("Restarting video stream...")
+                picam2.stop()
+                time.sleep(2)  # Ensure the camera is properly stopped
                 picam2.start()
                 
                 print("Recording stopped successfully.")
