@@ -1,6 +1,7 @@
 import subprocess
 import sys
 import os
+import time
 
 def install(package):
     if package == "picamera2":
@@ -147,6 +148,9 @@ def record():
                 # Stop the video stream
                 picam2.stop()
                 
+                # Add a delay to ensure the camera is released
+                time.sleep(2)
+                
                 # Start the recording process
                 recording_process = subprocess.Popen([
                     "libcamera-vid", "-o", "video.h264", "-t", "0"
@@ -161,6 +165,9 @@ def record():
             # Stop the recording process
             recording_process.terminate()
             recording_process = None
+            
+            # Add a delay to ensure the recording process is terminated
+            time.sleep(2)
             
             # Restart the video stream
             picam2.start()
