@@ -202,10 +202,7 @@ def generate_frames():
     """Continuously capture frames from the camera and stream via Flask."""
     print("Starting video stream...")
     while True:
-        if recording_process:
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + b'\r\n')
-        elif picam2 is not None:
+        if picam2 is not None:
             frame = picam2.capture_array()
             _, buffer = cv2.imencode('.jpg', frame)
             frame_bytes = buffer.tobytes()
