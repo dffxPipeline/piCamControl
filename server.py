@@ -154,6 +154,7 @@ def record():
     if action == "start_recording":
         if recording_process is None:
             if is_camera_in_use():
+                print("Camera is in use by another process.")
                 return jsonify({"success": False, "error": "Camera is in use by another process"})
             try:
                 # Stop the video stream
