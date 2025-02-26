@@ -196,7 +196,7 @@ def record():
                 time.sleep(2)
                 
                 # Restart the video stream
-                print("Starting video stream...")
+                print("Restarting video stream...")
                 picam2.start()
                 
                 print("Recording stopped successfully.")
