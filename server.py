@@ -71,7 +71,7 @@ try:
     # Check and print camera type
     camera_info = picam2.camera_properties
     print("Camera Info:", camera_info)  # Added print statement
-    if "64" in camera_info.get("CameraName", ""):
+    if "64" in camera_info.get("Model", ""):
         print("Arducam Hawkeye 64 MP Camera found.")
     else:
         print("Raspberry Pi HQ Camera found.")
