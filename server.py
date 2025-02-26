@@ -187,6 +187,8 @@ def record():
                 print("Restarting video stream...")
                 picam2.stop()
                 time.sleep(2)  # Ensure the camera is properly stopped
+                config = picam2.create_preview_configuration(main={"size": (1280, 720)})
+                picam2.configure(config)
                 picam2.start()
                 
                 print("Recording stopped successfully.")
