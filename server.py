@@ -157,12 +157,14 @@ def record():
                 return jsonify({"success": False, "error": "Camera is in use by another process"})
             try:
                 # Stop the video stream
+                print("Stopping video stream...")
                 picam2.stop()
                 
                 # Add a delay to ensure the camera is released
                 time.sleep(2)
                 
                 # Start the recording process
+                print("Starting video recording...")
                 recording_process = subprocess.Popen([
                     "libcamera-vid", "-o", "video.h264", "-t", "0"
                 ])
@@ -174,6 +176,7 @@ def record():
     elif action == "stop_recording":
         if recording_process is not None:
             # Stop the recording process
+            print("Stopping video recording...")
             recording_process.terminate()
             recording_process = None
             
@@ -181,6 +184,7 @@ def record():
             time.sleep(2)
             
             # Restart the video stream
+            print("Starting video stream...")
             picam2.start()
             
             return jsonify({"success": True})
@@ -189,6 +193,7 @@ def record():
 
 def generate_frames():
     """Continuously capture frames from the camera and stream via Flask."""
+    print("Starting video stream...")
     while True:
         if picam2 is not None:
             frame = picam2.capture_array()
@@ -200,6 +205,7 @@ def generate_frames():
         else:
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + b'\r\n')
+    print("Stopping video stream...")
 
 @app.route('/video_feed')
 def video_feed():
