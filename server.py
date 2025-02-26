@@ -44,6 +44,8 @@ from flask import Flask, render_template, request, jsonify, Response
 from adafruit_servokit import ServoKit
 import cv2
 from picamera2 import Picamera2
+from picamera2 import H264Encoder
+from picamera2 import FfmpegOutput
 import board
 import busio
 from adafruit_pca9685 import PCA9685
