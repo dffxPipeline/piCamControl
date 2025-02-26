@@ -172,9 +172,10 @@ def record():
                 
                 # Start the recording process using Picamera2
                 print("Starting video recording...")
-                video_output = FfmpegOutput("video.mp4")
-                encoder = H264Encoder(10000000)
-                picam2.start_recording(encoder,output=video_output)
+                video_output = FfmpegOutput("video.h264")
+                #encoder = H264Encoder(10000000)
+                #picam2.start_recording(encoder,output=video_output)
+                picam2.start_recording(output=video_output)
                 #picam2.start_recording(cv2.VideoWriter("video.mp4", cv2.VideoWriter_fourcc(*'mp4v'), 30, (1280, 720)))
                 recording_process = True
                 print("Recording started successfully.")
