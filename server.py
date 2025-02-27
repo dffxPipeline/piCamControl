@@ -185,12 +185,17 @@ def record():
                 # Add a delay to ensure the recording process is terminated
                 #time.sleep(2)
                 
-                # Restart the video stream
-                #print("Restarting video stream...")
-                #picam2.start()
+                # Wait until the video file is closed
+                video_output = "video.h264"
+                while os.path.exists(video_output):
+                    try:
+                        with open(video_output, 'rb'):
+                            break
+                    except IOError:
+                        time.sleep(0.1)
                 
-                print("Recording stopped successfully.")
-                return jsonify({"success": True, "message": "Recording stopped successfully."})
+                print("Recording stopped successfully and file is closed.")
+                return jsonify({"success": True, "message": "Recording stopped successfully and file is closed."})
             except Exception as e:
                 print(f"Failed to stop recording: {e}")
                 return jsonify({"success": False, "error": str(e)})
