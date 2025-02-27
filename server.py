@@ -198,9 +198,13 @@ def record():
                 print("Recording stopped successfully and file is closed.")
                 
                 # Restart the server.py script only if the camera model contains "64"
-                if "64" in camera_model:
-                    print("Restarting server...")
-                    os.execv(sys.executable, ['python'] + sys.argv)
+                #if "64" in camera_model:
+                    #print("Restarting server...")
+                    #os.execv(sys.executable, ['python'] + sys.argv)
+                
+                # Restart the server.py script
+                print("Restarting server...")
+                os.execv(sys.executable, ['python'] + sys.argv)
                 
                 return jsonify({"success": True, "message": "Recording stopped successfully and file is closed."})
             except Exception as e:
