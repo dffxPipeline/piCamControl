@@ -195,6 +195,11 @@ def record():
                         time.sleep(0.1)
                 
                 print("Recording stopped successfully and file is closed.")
+                
+                # Restart the server.py script
+                print("Restarting server...")
+                os.execv(sys.executable, ['python'] + sys.argv)
+                
                 return jsonify({"success": True, "message": "Recording stopped successfully and file is closed."})
             except Exception as e:
                 print(f"Failed to stop recording: {e}")
