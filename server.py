@@ -55,6 +55,7 @@ app = Flask(__name__)
 servos_found = False
 picam2 = None  # Define picam2 outside the try block
 recording_process = None  # To keep track of the recording process
+camera_model = ""  # Variable to store the camera model name
 
 # Check if servos are connected
 try:
@@ -75,8 +76,8 @@ try:
     
     # Check and print camera type
     camera_info = picam2.camera_properties
-    #print("Camera Info:", camera_info)  # Added print statement
-    if "64" in camera_info.get("Model", ""):
+    camera_model = camera_info.get("Model", "")  # Store the camera model name
+    if "64" in camera_model:
         print("Arducam Hawkeye 64 MP Camera found.")
     else:
         print("Raspberry Pi HQ Camera found.")
@@ -196,9 +197,10 @@ def record():
                 
                 print("Recording stopped successfully and file is closed.")
                 
-                # Restart the server.py script
-                print("Restarting server...")
-                os.execv(sys.executable, ['python'] + sys.argv)
+                # Restart the server.py script only if the camera model contains "64"
+                if "64" in camera_model:
+                    print("Restarting server...")
+                    os.execv(sys.executable, ['python'] + sys.argv)
                 
                 return jsonify({"success": True, "message": "Recording stopped successfully and file is closed."})
             except Exception as e:
