@@ -79,8 +79,6 @@ try:
     camera_model = camera_info.get("Model", "")  # Store the camera model name
     if "64" in camera_model:
         print("Arducam Hawkeye 64 MP Camera found.")
-        # Turn on focus for stream and video
-        picam2.set_controls({"Focus": 1})
     else:
         print("Raspberry Pi HQ Camera found.")
 except Exception as e:
