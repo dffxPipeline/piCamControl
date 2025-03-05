@@ -166,8 +166,8 @@ def record():
                 video_output = "video.h264"
                 encoder = H264Encoder()
                 print("Starting video recording...")
-                if "64" in camera_model:
-                    picam2.set_controls({"AfMode": 1 ,"AfTrigger": 0})  # Ensure Auto Focus is on
+                #if "64" in camera_model:
+                    #picam2.set_controls({"AfMode": 1 ,"AfTrigger": 0})  # Ensure Auto Focus is on
                 picam2.start_recording(encoder, output=video_output)
                 print("Recording started successfully.")
                 recording_process = True
@@ -221,8 +221,8 @@ def generate_frames():
     print("Starting video stream...")
     while True:
         if picam2 is not None:
-            if "64" in camera_model:
-                picam2.set_controls({"AfMode": 1 ,"AfTrigger": 0})  # Ensure Auto Focus is on
+            #if "64" in camera_model:
+                #picam2.set_controls({"AfMode": 1 ,"AfTrigger": 0})  # Ensure Auto Focus is on
             frame = picam2.capture_array()
             _, buffer = cv2.imencode('.jpg', frame)
             frame_bytes = buffer.tobytes()
