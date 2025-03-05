@@ -79,6 +79,8 @@ try:
     camera_model = camera_info.get("Model", "")  # Store the camera model name
     if "64" in camera_model:
         print("Arducam Hawkeye 64 MP Camera found.")
+        # Turn on Auto Focus for stream and video
+        picam2.set_controls({"AfMode": 1 ,"AfTrigger": 0})  # Assuming '1' enables Auto Focus
     else:
         print("Raspberry Pi HQ Camera found.")
 except Exception as e:
@@ -161,11 +163,11 @@ def record():
     if action == "start_recording":
         if recording_process is None:
             try:
-                #print("Stopping video stream...")
-                #picam2.stop()  # Stop the camera to ensure no conflicts
                 video_output = "video.h264"
                 encoder = H264Encoder()
                 print("Starting video recording...")
+                if "64" in camera_model:
+                    picam2.set_controls({"AfMode": 1 ,"AfTrigger": 0})  # Ensure Auto Focus is on
                 picam2.start_recording(encoder, output=video_output)
                 print("Recording started successfully.")
                 recording_process = True
@@ -219,6 +221,8 @@ def generate_frames():
     print("Starting video stream...")
     while True:
         if picam2 is not None:
+            if "64" in camera_model:
+                picam2.set_controls({"AfMode": 1 ,"AfTrigger": 0})  # Ensure Auto Focus is on
             frame = picam2.capture_array()
             _, buffer = cv2.imencode('.jpg', frame)
             frame_bytes = buffer.tobytes()
