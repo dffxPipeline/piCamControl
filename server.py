@@ -209,8 +209,8 @@ def record():
                 
                 # Transfer the file to the central server
                 central_server_ip = "192.168.48.100"  # Replace with the actual IP address of the central server
-                central_server_path = "/piCamControl/video_output/"  # Replace with the actual path on the central server
-                scp_command = f"scp {new_video_output} user@{central_server_ip}:{central_server_path}"
+                central_server_path = "piCamControl/video_output/"  # Replace with the actual path on the central server
+                scp_command = f"scp {new_video_output} chadfinnerty@{central_server_ip}:{central_server_path}"
                 os.system(scp_command)
                 
                 print(f"Video file {new_video_output} transferred to central server.")
