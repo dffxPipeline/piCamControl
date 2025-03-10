@@ -215,11 +215,15 @@ def record():
                 
                 print(f"Video file {new_video_output} transferred to central server.")
                 
+                # Delete the video file after transfer
+                os.remove(new_video_output)
+                print(f"Video file {new_video_output} deleted from local storage.")
+                
                 # Restart the server.py script
                 print("Restarting server...")
                 os.execv(sys.executable, ['python'] + sys.argv)
                 
-                return jsonify({"success": True, "message": "Recording stopped successfully, file renamed and transferred."})
+                return jsonify({"success": True, "message": "Recording stopped successfully, file renamed, transferred, and deleted."})
             except Exception as e:
                 print(f"Failed to stop recording: {e}")
                 return jsonify({"success": False, "error": str(e)})
