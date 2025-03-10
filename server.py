@@ -2,6 +2,8 @@ import subprocess
 import sys
 import os
 import time
+import datetime
+import socket
 
 def install(package):
     if package == "picamera2":
@@ -199,16 +201,25 @@ def record():
                 
                 print("Recording stopped successfully and file is closed.")
                 
-                # Restart the server.py script only if the camera model contains "64"
-                #if "64" in camera_model:
-                    #print("Restarting server...")
-                    #os.execv(sys.executable, ['python'] + sys.argv)
+                # Rename the video file to include the Raspberry Pi name and timestamp
+                pi_name = socket.gethostname()
+                timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                new_video_output = f"{pi_name}_{timestamp}.h264"
+                os.rename(video_output, new_video_output)
+                
+                # Transfer the file to the central server
+                central_server_ip = "192.168.48.100"  # Replace with the actual IP address of the central server
+                central_server_path = "/piCamControl/video_output/"  # Replace with the actual path on the central server
+                scp_command = f"scp {new_video_output} user@{central_server_ip}:{central_server_path}"
+                os.system(scp_command)
+                
+                print(f"Video file {new_video_output} transferred to central server.")
                 
                 # Restart the server.py script
                 print("Restarting server...")
                 os.execv(sys.executable, ['python'] + sys.argv)
                 
-                return jsonify({"success": True, "message": "Recording stopped successfully and file is closed."})
+                return jsonify({"success": True, "message": "Recording stopped successfully, file renamed and transferred."})
             except Exception as e:
                 print(f"Failed to stop recording: {e}")
                 return jsonify({"success": False, "error": str(e)})
