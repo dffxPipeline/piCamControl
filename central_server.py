@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify
 import requests
 import os
+import socket
 
 app = Flask(__name__)
 
@@ -24,11 +25,25 @@ def get_servos_status():
             servos_status[ip] = False
     return servos_status
 
+def get_hostnames():
+    hostnames = {}
+    for ip in raspberry_pi_ips:
+        try:
+            response = requests.get(f'http://{ip}:5000/hostname')
+            response.raise_for_status()
+            data = response.json()
+            hostnames[ip] = data.get("hostname", "Unknown")
+        except requests.RequestException as e:
+            print(f"Error getting hostname from {ip}: {e}")
+            hostnames[ip] = "Unknown"
+    return hostnames
+
 @app.route('/')
 def index():
     """Render HTML page with all camera feeds."""
     servos_status = get_servos_status()
-    return render_template('index.html', raspberry_pi_ips=raspberry_pi_ips, servos_status=servos_status)
+    hostnames = get_hostnames()
+    return render_template('index.html', raspberry_pi_ips=raspberry_pi_ips, servos_status=servos_status, hostnames=hostnames)
 
 @app.route('/control', methods=['POST'])
 def control():

@@ -75,8 +75,8 @@
     <div class="video-container">
         {% for ip in raspberry_pi_ips %}
         <div>
-            <h3>Camera {{ loop.index }}</h3>
-            <img src="http://{{ ip }}:5000/video_feed" alt="Live Video Stream from {{ ip }}">
+            <h3>Camera {{ hostnames[ip] }}</h3>
+            <img src="http://{{ ip }}:5000/video_feed" alt="Live Video Stream from {{ hostnames[ip] }}">
             {% if servos_status[ip] %}
             <div class="controls">
                 <button onclick="sendControl('tilt_up', '{{ ip }}')">Tilt Up</button>

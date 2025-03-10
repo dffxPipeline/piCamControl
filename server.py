@@ -255,5 +255,10 @@ def video_feed():
     return Response(generate_frames(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
+@app.route('/hostname', methods=['GET'])
+def hostname():
+    """Endpoint to get the hostname of the Raspberry Pi."""
+    return jsonify({"hostname": socket.gethostname()})
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)
