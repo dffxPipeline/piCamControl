@@ -31,7 +31,7 @@ required_packages = [
     "adafruit-circuitpython-servokit",
     "adafruit-circuitpython-pca9685",
     "opencv-python",
-    "python3-picamera2",
+    "picamera2",
     "libcamera-apps"
 ]
 
