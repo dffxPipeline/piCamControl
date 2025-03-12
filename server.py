@@ -6,7 +6,7 @@ import datetime
 import socket
 
 def install(package):
-    if package == "picamera2":
+    if package == "python3-picamera2":
         subprocess.check_call(["sudo", "apt", "install", "-y", "ffmpeg"])
         subprocess.check_call(["sudo", "apt", "install", "-y", package])
     elif package == "system_packages":
@@ -31,7 +31,7 @@ required_packages = [
     "adafruit-circuitpython-servokit",
     "adafruit-circuitpython-pca9685",
     "opencv-python",
-    "picamera2",
+    "python3-picamera2",
     "libcamera-apps"
 ]
 
