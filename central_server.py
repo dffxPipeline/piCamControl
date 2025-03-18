@@ -182,7 +182,7 @@ def manage_servers():
             try:
                 # Attempt to start server.py via SSH
                 hostname = socket.gethostbyaddr(ip)[0]
-                os.system(f"ssh cfinnerty@{ip} 'nohup python3 piCamControl/server.py &'")
+                os.system(f"ssh cfinnerty@{ip} 'python3 piCamControl/server.py &'")
                 messages.append(f"Started server on {hostname} ({ip}).")
             except Exception as e:
                 errors.append(f"Error starting server on {ip}: {e}")
