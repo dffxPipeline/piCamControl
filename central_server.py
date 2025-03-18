@@ -187,5 +187,24 @@ def manage_servers():
 
     return jsonify({'success': success, 'message': messages, 'errors': errors})
 
+@app.route('/stop_servers', methods=['POST'])
+def stop_servers():
+    """Stop server.py on each Raspberry Pi."""
+    success = True
+    messages = []
+    errors = []
+
+    for ip in raspberry_pi_ips:
+        try:
+            # Attempt to stop server.py via SSH
+            command = f"ssh cfinnerty@{ip} 'pkill -f server.py'"
+            subprocess.run(command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            messages.append(f"Stopped server on {ip}.")
+        except subprocess.CalledProcessError as e:
+            errors.append(f"Error stopping server on {ip}: {e}")
+            success = False
+
+    return jsonify({'success': success, 'message': messages, 'errors': errors})
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)
