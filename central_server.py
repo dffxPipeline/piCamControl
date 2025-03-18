@@ -157,5 +157,38 @@ def record():
 
     return jsonify({'success': success, 'errors': errors})
 
+@app.route('/manage_servers', methods=['POST'])
+def manage_servers():
+    """Start or restart server.py on each Raspberry Pi."""
+    success = True
+    messages = []
+    errors = []
+
+    for ip in raspberry_pi_ips:
+        try:
+            # Check if server.py is running
+            response = requests.get(f'http://{ip}:5000/hostname', timeout=5)
+            if response.status_code == 200:
+                # Restart server.py
+                restart_response = requests.post(f'http://{ip}:5000/control', json={'action': 'restart_server'})
+                if restart_response.status_code == 200:
+                    hostname = response.json().get('hostname', 'Unknown')
+                    messages.append(f"Restarted server on {hostname} ({ip}).")
+                else:
+                    raise Exception(f"Failed to restart server on {ip}.")
+            else:
+                raise Exception(f"Server not responding on {ip}.")
+        except requests.RequestException:
+            try:
+                # Attempt to start server.py via SSH
+                hostname = socket.gethostbyaddr(ip)[0]
+                os.system(f"ssh cfinnerty@{ip} 'nohup python3 piCamControl/server.py &'")
+                messages.append(f"Started server on {hostname} ({ip}).")
+            except Exception as e:
+                errors.append(f"Error starting server on {ip}: {e}")
+                success = False
+
+    return jsonify({'success': success, 'message': messages, 'errors': errors})
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)

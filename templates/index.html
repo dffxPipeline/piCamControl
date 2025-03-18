@@ -64,6 +64,22 @@
             })
             .catch(error => console.error('Error:', error));
         }
+
+        function manageServers() {
+            fetch('/manage_servers', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Servers managed successfully:\n' + data.message.join('\n'));
+                } else {
+                    alert('Errors occurred:\n' + data.errors.join('\n'));
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
     </script>
 </head>
 <body>
@@ -71,6 +87,7 @@
     <h1>Multi-Camera Live Stream</h1>
 
     <button id="recordButton" data-recording="false" onclick="toggleRecording()">Start Recording</button>
+    <button id="manageServersButton" onclick="manageServers()">Start/Restart Servers</button>
 
     <div class="video-container">
         {% for ip in raspberry_pi_ips %}
