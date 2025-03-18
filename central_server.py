@@ -159,7 +159,7 @@ def record():
 
 @app.route('/manage_servers', methods=['POST'])
 def manage_servers():
-    """Start or restart server.py on each Raspberry Pi."""
+    """Start server.py on each Raspberry Pi if it isn't currently running."""
     success = True
     messages = []
     errors = []
@@ -169,13 +169,8 @@ def manage_servers():
             # Check if server.py is running
             response = requests.get(f'http://{ip}:5000/hostname', timeout=5)
             if response.status_code == 200:
-                # Restart server.py
-                restart_response = requests.post(f'http://{ip}:5000/control', json={'action': 'restart_server'})
-                if restart_response.status_code == 200:
-                    hostname = response.json().get('hostname', 'Unknown')
-                    messages.append(f"Restarted server on {hostname} ({ip}).")
-                else:
-                    raise Exception(f"Failed to restart server on {ip}.")
+                hostname = response.json().get('hostname', 'Unknown')
+                messages.append(f"Server is already running on {hostname} ({ip}).")
             else:
                 raise Exception(f"Server not responding on {ip}.")
         except requests.RequestException:
