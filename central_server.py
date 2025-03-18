@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify
 import requests
 import os
 import socket
+import subprocess
 
 app = Flask(__name__)
 
@@ -175,9 +176,10 @@ def manage_servers():
                 raise Exception(f"Server not responding on {ip}.")
         except requests.RequestException:
             try:
-                # Attempt to start server.py via SSH
+                # Attempt to start server.py via SSH in the background
                 hostname = socket.gethostbyaddr(ip)[0]
-                os.system(f"ssh cfinnerty@{ip} 'nohup python3 piCamControl/server.py &'")
+                command = f"ssh cfinnerty@{ip} 'nohup python3 piCamControl/server.py &'"
+                subprocess.Popen(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
                 messages.append(f"Started server on {hostname} ({ip}).")
             except Exception as e:
                 errors.append(f"Error starting server on {ip}: {e}")
