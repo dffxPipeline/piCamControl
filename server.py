@@ -157,7 +157,7 @@ def is_camera_in_use():
 
 @app.route('/record', methods=['POST'])
 def record():
-    """Handle start and stop recording requests."""
+    """Handle start, stop recording, and transfer video requests."""
     global recording_process
     data = request.get_json()
     action = data.get("action")
@@ -186,10 +186,7 @@ def record():
                 print("Stopping video recording...")
                 picam2.stop_recording()
                 recording_process = None
-                
-                # Add a delay to ensure the recording process is terminated
-                #time.sleep(2)
-                
+
                 # Wait until the video file is closed
                 video_output = "video.h264"
                 while os.path.exists(video_output):
@@ -198,38 +195,44 @@ def record():
                             break
                     except IOError:
                         time.sleep(0.1)
-                
+
                 print("Recording stopped successfully and file is closed.")
-                
-                # Rename the video file to include the Raspberry Pi name and timestamp
-                pi_name = socket.gethostname()
-                timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-                new_video_output = f"{pi_name}_{timestamp}.h264"
-                os.rename(video_output, new_video_output)
-                
-                # Transfer the file to the central server
-                central_server_ip = "192.168.10.100"  # Replace with the actual IP address of the central server
-                central_server_path = "piCamControlOutput/"  # Replace with the actual path on the central server
-                scp_command = f"scp {new_video_output} chadfinnerty@{central_server_ip}:{central_server_path}"
-                os.system(scp_command)
-                
-                print(f"Video file {new_video_output} transferred to central server.")
-                
-                # Delete the video file after transfer
-                os.remove(new_video_output)
-                print(f"Video file {new_video_output} deleted from local storage.")
-                
-                # Restart the server.py script
-                print("Restarting server...")
-                os.execv(sys.executable, ['python'] + sys.argv)
-                
-                return jsonify({"success": True, "message": "Recording stopped successfully, file renamed, transferred, and deleted."})
+                return jsonify({"success": True, "message": "Recording stopped successfully."})
             except Exception as e:
                 print(f"Failed to stop recording: {e}")
                 return jsonify({"success": False, "error": str(e)})
         else:
             print("No recording is in progress.")
             return jsonify({"success": False, "error": "Not recording"})
+    elif action == "transfer_video":
+        try:
+            # Rename the video file to include the Raspberry Pi name and timestamp
+            pi_name = socket.gethostname()
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            video_output = "video.h264"
+            new_video_output = f"{pi_name}_{timestamp}.h264"
+            os.rename(video_output, new_video_output)
+
+            # Transfer the file to the central server
+            central_server_ip = "192.168.10.100"  # Replace with the actual IP address of the central server
+            central_server_path = "piCamControlOutput/"  # Replace with the actual path on the central server
+            scp_command = f"scp {new_video_output} chadfinnerty@{central_server_ip}:{central_server_path}"
+            os.system(scp_command)
+
+            print(f"Video file {new_video_output} transferred to central server.")
+
+            # Delete the video file after transfer
+            os.remove(new_video_output)
+            print(f"Video file {new_video_output} deleted from local storage.")
+
+            # Restart the server.py script
+            print("Restarting server...")
+            os.execv(sys.executable, ['python'] + sys.argv)
+
+            return jsonify({"success": True, "message": "Video transferred, deleted, and server restarted successfully."})
+        except Exception as e:
+            print(f"Failed to transfer video: {e}")
+            return jsonify({"success": False, "error": str(e)})
 
 def generate_frames():
     """Continuously capture frames from the camera and stream via Flask."""
