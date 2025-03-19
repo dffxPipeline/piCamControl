@@ -231,5 +231,36 @@ def stop_servers():
 
     return jsonify({'success': success, 'message': messages, 'errors': errors})
 
+@app.route('/update_servers', methods=['POST'])
+def update_servers():
+    """Update the piCamControl repository on each Raspberry Pi."""
+    success = True
+    messages = []
+    errors = []
+
+    # Check if all servers are stopped
+    for ip in raspberry_pi_ips:
+        try:
+            response = requests.get(f'http://{ip}:5000/hostname', timeout=5)
+            if response.status_code == 200:
+                errors.append(f"Server is still running on {ip}. Please stop all servers before updating.")
+                success = False
+                return jsonify({'success': success, 'message': messages, 'errors': errors})
+        except requests.RequestException:
+            # Server is not running, proceed with update
+            pass
+
+    # Perform git pull on each Raspberry Pi
+    for ip in raspberry_pi_ips:
+        try:
+            command = f"ssh cfinnerty@{ip} 'cd piCamControl && git pull'"
+            subprocess.run(command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            messages.append(f"Updated repository on {ip}.")
+        except subprocess.CalledProcessError as e:
+            errors.append(f"Error updating repository on {ip}: {e}")
+            success = False
+
+    return jsonify({'success': success, 'message': messages, 'errors': errors})
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)

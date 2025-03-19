@@ -96,6 +96,25 @@
             })
             .catch(error => console.error('Error:', error));
         }
+
+        function updateServers() {
+            fetch('/update_servers', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Servers updated successfully:\n' + data.message.join('\n'));
+                    if (confirm('Would you like to start the Raspberry Pi servers now?')) {
+                        manageServers();
+                    }
+                } else {
+                    alert('Errors occurred during update:\n' + data.errors.join('\n'));
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
     </script>
 </head>
 <body>
@@ -105,6 +124,7 @@
     <button id="recordButton" data-recording="false" onclick="toggleRecording()">Start Recording</button>
     <button id="manageServersButton" onclick="manageServers()">Start Servers</button>
     <button id="stopServersButton" onclick="stopServers()">Stop Servers</button>
+    <button id="updateServersButton" onclick="updateServers()">Update Servers</button>
 
     <div class="video-container">
         {% for ip in raspberry_pi_ips %}
