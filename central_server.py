@@ -96,9 +96,34 @@ def get_hostnames():
 @app.route('/')
 def index():
     """Render HTML page with all camera feeds."""
-    servos_status = get_servos_status()
-    hostnames = get_hostnames()
-    return render_template('index.html', raspberry_pi_ips=raspberry_pi_ips, servos_status=servos_status, hostnames=hostnames)
+    servos_status = {}
+    hostnames = {}
+    offline_devices = []
+
+    for ip in raspberry_pi_ips:
+        try:
+            # Get servos status
+            response = requests.get(f'http://{ip}:5000/servos_status', timeout=5)
+            response.raise_for_status()
+            servos_status[ip] = response.json().get("servos_found", False)
+
+            # Get hostname
+            response = requests.get(f'http://{ip}:5000/hostname', timeout=5)
+            response.raise_for_status()
+            hostnames[ip] = response.json().get("hostname", "Unknown")
+        except requests.RequestException:
+            # Mark device as offline
+            servos_status[ip] = False
+            hostnames[ip] = "Offline"
+            offline_devices.append(ip)
+
+    return render_template(
+        'index.html',
+        raspberry_pi_ips=raspberry_pi_ips,
+        servos_status=servos_status,
+        hostnames=hostnames,
+        offline_devices=offline_devices
+    )
 
 @app.route('/control', methods=['POST'])
 def control():

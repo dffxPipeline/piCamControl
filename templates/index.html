@@ -110,6 +110,9 @@
         {% for ip in raspberry_pi_ips %}
         <div>
             <h3>{{ hostnames[ip] }}</h3>
+            {% if hostnames[ip] == "Offline" %}
+            <p style="color: red;">Device is offline. Unable to connect.</p>
+            {% else %}
             <img src="http://{{ ip }}:5000/video_feed" alt="Live Video Stream from {{ hostnames[ip] }}">
             {% if servos_status[ip] %}
             <div class="controls">
@@ -129,6 +132,7 @@
             </div>
             {% else %}
             <p>Servos not found for this camera. Only live stream is available.</p>
+            {% endif %}
             {% endif %}
         </div>
         {% endfor %}
