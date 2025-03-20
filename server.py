@@ -4,11 +4,13 @@ import os
 import time
 import datetime
 import socket
+import pkg_resources
 
 def install(package):
     if package == "python3-picamera2":
-        subprocess.check_call(["sudo", "apt", "install", "-y", "ffmpeg"])
-        subprocess.check_call(["sudo", "apt", "install", "-y", package])
+        if not is_system_package_installed(package):
+            subprocess.check_call(["sudo", "apt", "install", "-y", "ffmpeg"])
+            subprocess.check_call(["sudo", "apt", "install", "-y", package])
     elif package == "system_packages":
         system_packages = [
             "libatlas-base-dev",
@@ -18,11 +20,31 @@ def install(package):
         ]
         subprocess.check_call(["sudo", "apt", "update"])
         for sys_pkg in system_packages:
-            subprocess.check_call(["sudo", "apt", "install", "-y", sys_pkg])
+            if not is_system_package_installed(sys_pkg):
+                subprocess.check_call(["sudo", "apt", "install", "-y", sys_pkg])
     elif package == "libcamera-apps":
-        subprocess.check_call(["sudo", "apt", "install", "-y", package])
+        if not is_system_package_installed(package):
+            subprocess.check_call(["sudo", "apt", "install", "-y", package])
     else:
-        subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+        if not is_python_package_installed(package):
+            subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+
+def is_python_package_installed(package):
+    """Check if a Python package is installed."""
+    try:
+        pkg_resources.get_distribution(package)
+        return True
+    except pkg_resources.DistributionNotFound:
+        return False
+
+def is_system_package_installed(package):
+    """Check if a system package is installed."""
+    try:
+        result = subprocess.run(["dpkg-query", "-W", "-f='${Status}'", package],
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return "install ok installed" in result.stdout.decode("utf-8")
+    except Exception:
+        return False
 
 # List of required packages
 required_packages = [

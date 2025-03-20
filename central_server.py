@@ -44,7 +44,7 @@ raspberry_pi_ips = [
     "192.168.10.164",
     "192.168.10.165",
     "192.168.10.166",
-    "192.168.10.171",
+    #"192.168.10.171",
     "192.168.10.172",
     "192.168.10.173",
     "192.168.10.174",
@@ -52,7 +52,7 @@ raspberry_pi_ips = [
     "192.168.10.176",
     "192.168.10.181",
     "192.168.10.182",
-    "192.168.10.183",
+    #"192.168.10.183",
     "192.168.10.184",
     "192.168.10.185",
     "192.168.10.186",
@@ -202,10 +202,9 @@ def manage_servers():
         except requests.RequestException:
             try:
                 # Attempt to start server.py via SSH in the background
-                hostname = socket.gethostbyaddr(ip)[0]
                 command = f"ssh cfinnerty@{ip} 'nohup python3 piCamControl/server.py &'"
                 subprocess.Popen(command, shell=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                messages.append(f"Started server on {hostname} ({ip}).")
+                messages.append(f"Started server on {ip}.")
             except Exception as e:
                 errors.append(f"Error starting server on {ip}: {e}")
                 success = False
