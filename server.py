@@ -95,8 +95,8 @@ except Exception as e:
 try:
     picam2 = Picamera2()
     config = picam2.create_preview_configuration(
-        main={"size": (1280, 720)},
-        controls={"ColorSpace": "sRGB"}  # Explicitly set the colorspace to sRGB
+        main={"size": (1280, 720)}
+        #controls={"ColorSpace": "sRGB"}  # Explicitly set the colorspace to sRGB
     )
     picam2.configure(config)
     picam2.start()
