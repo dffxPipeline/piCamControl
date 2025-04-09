@@ -70,6 +70,7 @@ import cv2
 from picamera2 import Picamera2
 from picamera2.encoders import H264Encoder
 from picamera2.outputs import FfmpegOutput
+from picamera2 import ColourSpace
 import board
 import busio
 from adafruit_pca9685 import PCA9685
@@ -95,8 +96,8 @@ except Exception as e:
 try:
     picam2 = Picamera2()
     config = picam2.create_preview_configuration(
-        main={"size": (1280, 720)}
-        #controls={"ColorSpace": "sRGB"}  # Explicitly set the colorspace to sRGB
+        main={"format": "RGB888", "size": (1280, 720)},
+        colour_space=ColourSpace.Srgb()  # Explicitly set the colorspace to sRGB
     )
     picam2.configure(config)
     picam2.start()
