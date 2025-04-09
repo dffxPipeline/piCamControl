@@ -270,6 +270,7 @@ def record():
 @app.route('/take_photo', methods=['POST'])
 def take_photo():
     """Capture a photo and send it to the central server."""
+    current_resolution = None  # Initialize to avoid UnboundLocalError
     try:
         # Determine the desired resolution based on the camera type
         if "64" in camera_model:
