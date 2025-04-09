@@ -275,7 +275,7 @@ def take_photo():
         # Determine the desired resolution based on the camera type
         if "64" in camera_model:
             # Arducam Hawkeye 64 MP Camera
-            desired_resolution = (4624, 3472)
+            desired_resolution = (1920, 1080)
         else:
             # Raspberry Pi HQ Camera
             desired_resolution = (4056, 3040)
