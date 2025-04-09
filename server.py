@@ -94,17 +94,20 @@ except Exception as e:
 # Initialize camera
 try:
     picam2 = Picamera2()
-    config = picam2.create_preview_configuration(main={"size": (1280, 720)})
+    config = picam2.create_preview_configuration(
+        main={"size": (1280, 720)},
+        controls={"ColorSpace": "sRGB"}  # Explicitly set the colorspace to sRGB
+    )
     picam2.configure(config)
     picam2.start()
-    
+
     # Check and print camera type
     camera_info = picam2.camera_properties
     camera_model = camera_info.get("Model", "")  # Store the camera model name
     if "64" in camera_model:
         print("Arducam Hawkeye 64 MP Camera found.")
         # Turn on Auto Focus for stream and video
-        picam2.set_controls({"AfMode": 1 ,"AfTrigger": 0})  # Assuming '1' enables Auto Focus
+        picam2.set_controls({"AfMode": 1, "AfTrigger": 0})  # Assuming '1' enables Auto Focus
     else:
         print("Raspberry Pi HQ Camera found.")
 except Exception as e:
