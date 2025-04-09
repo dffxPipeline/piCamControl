@@ -271,6 +271,14 @@ def record():
 def take_photo():
     """Capture a photo and send it to the central server."""
     try:
+        # Set resolution based on the camera type
+        if "64" in camera_model:
+            # Arducam Hawkeye 64 MP Camera
+            picam2.set_controls({"ScalerCrop": (0, 0, 9152, 6944)})
+        else:
+            # Raspberry Pi HQ Camera
+            picam2.set_controls({"ScalerCrop": (0, 0, 4056, 3040)})
+
         # Capture the photo
         photo_filename = "photo.jpg"
         picam2.capture_file(photo_filename)
