@@ -271,20 +271,30 @@ def record():
 def take_photo():
     """Capture a photo and send it to the central server."""
     try:
-        # Set resolution based on the camera type
+        # Determine the desired resolution based on the camera type
         if "64" in camera_model:
             # Arducam Hawkeye 64 MP Camera
-            config = picam2.create_still_configuration(
-                main={"size": (9152, 6944)}
-            )
+            desired_resolution = (9152, 6944)
         else:
             # Raspberry Pi HQ Camera
-            config = picam2.create_still_configuration(
-                main={"size": (4056, 3040)}
-            )
+            desired_resolution = (4056, 3040)
 
-        # Apply the still configuration
-        picam2.configure(config)
+        # Check if the current configuration matches the desired resolution
+        current_config = picam2.camera_configuration
+        current_resolution = current_config["main"]["size"] if current_config else None
+
+        if current_resolution != desired_resolution:
+            # Stop the camera before reconfiguring
+            picam2.stop()
+
+            # Create and apply the still configuration
+            config = picam2.create_still_configuration(
+                main={"size": desired_resolution}
+            )
+            picam2.configure(config)
+
+            # Restart the camera
+            picam2.start()
 
         # Capture the photo
         photo_filename = "photo.jpg"
@@ -313,6 +323,14 @@ def take_photo():
     except Exception as e:
         print(f"Failed to take photo: {e}")
         return jsonify({"success": False, "error": str(e)})
+    finally:
+        # Restore the preview configuration if it was changed
+        if current_resolution != desired_resolution:
+            preview_config = picam2.create_preview_configuration(
+                main={"format": "RGB888", "size": (1280, 720)}
+            )
+            picam2.configure(preview_config)
+            picam2.start()
 
 def convert_to_mp4(h264_file, mp4_file):
     """Convert an H.264 file to MP4 using FFmpeg."""
