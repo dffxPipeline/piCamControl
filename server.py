@@ -281,7 +281,7 @@ def take_photo():
             desired_resolution = (4056, 3040)
 
         # Check if the current configuration matches the desired resolution
-        current_config = picam2.camera_configuration
+        current_config = picam2.camera_configuration()  # Call the method to get the configuration
         current_resolution = current_config["main"]["size"] if current_config else None
 
         if current_resolution != desired_resolution:
