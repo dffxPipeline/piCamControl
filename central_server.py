@@ -277,5 +277,30 @@ def update_servers():
 
     return jsonify({'success': success, 'message': messages, 'errors': errors})
 
+@app.route('/take_photo', methods=['POST'])
+def take_photo():
+    """Trigger photo capture on all Raspberry Pis and handle responses."""
+    success = True
+    messages = []
+    errors = []
+
+    for ip in raspberry_pi_ips:
+        try:
+            # Trigger the take_photo endpoint on the Raspberry Pi
+            response = requests.post(f'http://{ip}:5000/take_photo', timeout=10)
+            response.raise_for_status()
+            data = response.json()
+
+            if data.get('success', False):
+                messages.append(f"Photo taken successfully on {ip}.")
+            else:
+                errors.append(f"Error taking photo on {ip}: {data.get('error', 'Unknown error')}")
+                success = False
+        except requests.RequestException as e:
+            errors.append(f"Error communicating with {ip}: {e}")
+            success = False
+
+    return jsonify({'success': success, 'message': messages, 'errors': errors})
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)
