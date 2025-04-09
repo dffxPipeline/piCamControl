@@ -286,7 +286,8 @@ def take_photo():
 
         if current_resolution != desired_resolution:
             # Stop the camera before reconfiguring
-            picam2.stop()
+            if picam2.is_running:
+                picam2.stop()
 
             # Create and apply the still configuration
             config = picam2.create_still_configuration(
@@ -327,6 +328,8 @@ def take_photo():
     finally:
         # Restore the preview configuration if it was changed
         if current_resolution != desired_resolution:
+            if picam2.is_running:
+                picam2.stop()
             preview_config = picam2.create_preview_configuration(
                 main={"format": "RGB888", "size": (1280, 720)}
             )
