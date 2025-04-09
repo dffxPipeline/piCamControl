@@ -299,14 +299,14 @@ def take_photo():
             picam2.start()
 
         # Capture the photo
-        photo_filename = "photo.jpg"
+        photo_filename = "photo.png"
         picam2.capture_file(photo_filename)
         print(f"Photo captured: {photo_filename}")
 
         # Rename the photo file to include the Raspberry Pi name and timestamp
         pi_name = socket.gethostname()
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        new_photo_filename = f"{pi_name}_{timestamp}.jpg"
+        new_photo_filename = f"{pi_name}_{timestamp}.png"
         os.rename(photo_filename, new_photo_filename)
 
         # Transfer the photo to the central server
