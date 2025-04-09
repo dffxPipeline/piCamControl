@@ -189,6 +189,32 @@ def record():
     if action == "start_recording":
         if recording_process is None:
             try:
+                # Determine the desired resolution based on the camera type
+                if "64" in camera_model:
+                    # Arducam Hawkeye 64 MP Camera
+                    desired_resolution = (1280, 720)
+                else:
+                    # Raspberry Pi HQ Camera
+                    desired_resolution = (2028, 1520)
+
+                # Check if the current configuration matches the desired resolution
+                current_config = picam2.camera_configuration()  # Call the method to get the configuration
+                current_resolution = current_config["main"]["size"] if current_config else None
+
+                if current_resolution != desired_resolution:
+                    # Stop the camera before reconfiguring
+                    if picam2.started:
+                        picam2.stop()
+
+                    # Create and apply the recording configuration
+                    config = picam2.create_video_configuration(
+                        main={"size": desired_resolution}
+                    )
+                    picam2.configure(config)
+
+                    # Restart the camera
+                    picam2.start()
+
                 video_output = "video.h264"
                 encoder = H264Encoder()
                 print("Starting video recording...")
