@@ -221,7 +221,16 @@ def record():
                         time.sleep(0.1)
 
                 print("Recording stopped successfully and file is closed.")
-                return jsonify({"success": True, "message": "Recording stopped successfully."})
+
+                # Convert H.264 to MP4
+                mp4_output = "video.mp4"
+                if convert_to_mp4(video_output, mp4_output):
+                    os.remove(video_output)  # Remove the H.264 file after successful conversion
+                    print(f"Converted to MP4 and removed {video_output}.")
+                else:
+                    print("Failed to convert to MP4. Keeping the H.264 file.")
+
+                return jsonify({"success": True, "message": "Recording stopped and converted to MP4."})
             except Exception as e:
                 print(f"Failed to stop recording: {e}")
                 return jsonify({"success": False, "error": str(e)})
@@ -230,25 +239,24 @@ def record():
             return jsonify({"success": False, "error": "Not recording"})
     elif action == "transfer_video":
         try:
-            # Rename the video file to include the Raspberry Pi name and timestamp
+            # Rename the MP4 file to include the Raspberry Pi name and timestamp
             pi_name = socket.gethostname()
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            video_output = "video.h264"
-            new_video_output = f"{pi_name}_{timestamp}.h264"
-            os.rename(video_output, new_video_output)
+            mp4_output = "video.mp4"
+            new_mp4_output = f"{pi_name}_{timestamp}.mp4"
+            os.rename(mp4_output, new_mp4_output)
 
             # Transfer the file to the central server
-            #central_server_ip = "192.168.10.100"  # Replace with the actual IP address of the central server
             central_server_ip = "192.168.48.100"  # Replace with the actual IP address of the central server
             central_server_path = "piCamControlOutput/"  # Replace with the actual path on the central server
-            scp_command = f"scp {new_video_output} chadfinnerty@{central_server_ip}:{central_server_path}"
+            scp_command = f"scp {new_mp4_output} chadfinnerty@{central_server_ip}:{central_server_path}"
             os.system(scp_command)
 
-            print(f"Video file {new_video_output} transferred to central server.")
+            print(f"Video file {new_mp4_output} transferred to central server.")
 
-            # Delete the video file after transfer
-            os.remove(new_video_output)
-            print(f"Video file {new_video_output} deleted from local storage.")
+            # Delete the MP4 file after transfer
+            os.remove(new_mp4_output)
+            print(f"Video file {new_mp4_output} deleted from local storage.")
 
             # Restart the server.py script
             print("Restarting server...")
@@ -258,6 +266,27 @@ def record():
         except Exception as e:
             print(f"Failed to transfer video: {e}")
             return jsonify({"success": False, "error": str(e)})
+
+def convert_to_mp4(h264_file, mp4_file):
+    """Convert an H.264 file to MP4 using FFmpeg."""
+    try:
+        command = [
+            "ffmpeg",
+            "-y",  # Overwrite output file if it exists
+            "-i", h264_file,  # Input file
+            "-c:v", "copy",  # Copy the video stream without re-encoding
+            mp4_file  # Output file
+        ]
+        result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if result.returncode == 0:
+            print(f"Successfully converted {h264_file} to {mp4_file}")
+            return True
+        else:
+            print(f"Failed to convert {h264_file} to MP4: {result.stderr.decode('utf-8')}")
+            return False
+    except Exception as e:
+        print(f"Error during conversion: {e}")
+        return False
 
 def generate_frames():
     """Continuously capture frames from the camera and stream via Flask."""
