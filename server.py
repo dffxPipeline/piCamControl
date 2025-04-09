@@ -267,6 +267,38 @@ def record():
             print(f"Failed to transfer video: {e}")
             return jsonify({"success": False, "error": str(e)})
 
+@app.route('/take_photo', methods=['POST'])
+def take_photo():
+    """Capture a photo and send it to the central server."""
+    try:
+        # Capture the photo
+        photo_filename = "photo.jpg"
+        picam2.capture_file(photo_filename)
+        print(f"Photo captured: {photo_filename}")
+
+        # Rename the photo file to include the Raspberry Pi name and timestamp
+        pi_name = socket.gethostname()
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        new_photo_filename = f"{pi_name}_{timestamp}.jpg"
+        os.rename(photo_filename, new_photo_filename)
+
+        # Transfer the photo to the central server
+        central_server_ip = "192.168.48.100"  # Replace with the actual IP address of the central server
+        central_server_path = "piCamControlOutput/"  # Replace with the actual path on the central server
+        scp_command = f"scp {new_photo_filename} chadfinnerty@{central_server_ip}:{central_server_path}"
+        os.system(scp_command)
+
+        print(f"Photo file {new_photo_filename} transferred to central server.")
+
+        # Delete the photo file after transfer
+        os.remove(new_photo_filename)
+        print(f"Photo file {new_photo_filename} deleted from local storage.")
+
+        return jsonify({"success": True, "message": "Photo taken and sent to the central server successfully."})
+    except Exception as e:
+        print(f"Failed to take photo: {e}")
+        return jsonify({"success": False, "error": str(e)})
+
 def convert_to_mp4(h264_file, mp4_file):
     """Convert an H.264 file to MP4 using FFmpeg."""
     try:

@@ -115,6 +115,22 @@
             })
             .catch(error => console.error('Error:', error));
         }
+
+        function takePhoto() {
+            fetch('/take_photo', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Photo taken and sent to the central server successfully.');
+                } else {
+                    alert('Error taking photo: ' + data.error);
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        }
     </script>
 </head>
 <body>
@@ -125,6 +141,7 @@
     <button id="manageServersButton" onclick="manageServers()">Start Servers</button>
     <button id="stopServersButton" onclick="stopServers()">Stop Servers</button>
     <button id="updateServersButton" onclick="updateServers()">Update Servers</button>
+    <button id="takePhotoButton" onclick="takePhoto()">Take Photo</button>
 
     <div class="video-container">
         {% for ip in raspberry_pi_ips %}
