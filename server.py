@@ -195,7 +195,7 @@ def record():
                     desired_resolution = (1280, 720)
                 else:
                     # Raspberry Pi HQ Camera
-                    desired_resolution = (2028, 1080)
+                    desired_resolution = (3840, 2160)
 
                 # Check if the current configuration matches the desired resolution
                 current_config = picam2.camera_configuration()  # Call the method to get the configuration
