@@ -192,7 +192,7 @@ def record():
                 # Determine the desired resolution based on the camera type
                 if "64" in camera_model:
                     # Arducam Hawkeye 64 MP Camera
-                    desired_resolution = (1920, 1080)
+                    desired_resolution = (1280, 720)
                 else:
                     # Raspberry Pi HQ Camera
                     desired_resolution = (2028, 1080)
