@@ -273,7 +273,7 @@ def record():
             os.rename(mp4_output, new_mp4_output)
 
             # Transfer the file to the central server
-            central_server_ip = "192.168.48.100"  # Replace with the actual IP address of the central server
+            central_server_ip = "192.168.10.100"  # Replace with the actual IP address of the central server
             central_server_path = "piCamControlOutput/"  # Replace with the actual path on the central server
             scp_command = f"scp {new_mp4_output} chadfinnerty@{central_server_ip}:{central_server_path}"
             os.system(scp_command)
@@ -336,7 +336,7 @@ def take_photo():
         os.rename(photo_filename, new_photo_filename)
 
         # Transfer the photo to the central server
-        central_server_ip = "192.168.48.100"  # Replace with the actual IP address of the central server
+        central_server_ip = "192.168.10.100"  # Replace with the actual IP address of the central server
         central_server_path = "piCamControlOutput/"  # Replace with the actual path on the central server
         scp_command = f"scp {new_photo_filename} chadfinnerty@{central_server_ip}:{central_server_path}"
         os.system(scp_command)
