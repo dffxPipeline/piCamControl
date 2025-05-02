@@ -8,9 +8,12 @@ app = Flask(__name__)
 
 # Determine the IP address of the machine running this script
 def get_host_ip():
+    """Determine the IP address of the machine running this script."""
     try:
         hostname = socket.gethostname()
-        return socket.gethostbyname(hostname)
+        host_ip = socket.gethostbyname(hostname)
+        print(f"Host IP address determined: {host_ip}")  # Print the host IP address
+        return host_ip
     except socket.error as e:
         print(f"Error determining host IP: {e}")
         return None
