@@ -183,11 +183,12 @@ def get_central_server_ip():
     """Determine the central server IP based on the host IP address."""
     try:
         host_ip = socket.gethostbyname(socket.gethostname())
+        print(f"Host IP address: {host_ip}")  # Print the host IP address
         if host_ip.startswith("192.168.48."):
             central_server_ip = "192.168.48.100"
         else:
             central_server_ip = "192.168.10.100"
-        print(f"Central server IP determined: {central_server_ip}")
+        print(f"Central server IP determined: {central_server_ip}")  # Print the central server IP
         return central_server_ip
     except Exception as e:
         print(f"Failed to determine host IP: {e}")
