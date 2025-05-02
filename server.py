@@ -305,11 +305,21 @@ def record():
             os.remove(new_mp4_output)
             print(f"Video file {new_mp4_output} deleted from local storage.")
 
-            # Restart the server.py script
-            print("Restarting server...")
-            os.execv(sys.executable, ['python'] + sys.argv)
+            # Send a success response **before** restarting the server
+            response = jsonify({"success": True, "message": "Video transferred and deleted successfully."})
+            response.status_code = 200
 
-            return jsonify({"success": True, "message": "Video transferred, deleted, and server restarted successfully."})
+            # Restart the server after sending the response
+            def restart_server():
+                print("Restarting server...")
+                time.sleep(1)  # Allow time for the response to be sent
+                os.execv(sys.executable, ['python'] + sys.argv)
+
+            # Use a background thread to restart the server
+            import threading
+            threading.Thread(target=restart_server).start()
+
+            return response
         except Exception as e:
             print(f"Failed to transfer video: {e}")
             return jsonify({"success": False, "error": str(e)})
