@@ -179,6 +179,18 @@ def is_camera_in_use():
         print(f"Error checking camera usage: {e}")
         return False
 
+def get_central_server_ip():
+    """Determine the central server IP based on the host IP address."""
+    try:
+        host_ip = socket.gethostbyname(socket.gethostname())
+        if host_ip.startswith("192.168.48."):
+            return "192.168.48.100"
+        else:
+            return "192.168.10.100"
+    except Exception as e:
+        print(f"Failed to determine host IP: {e}")
+        return "192.168.10.100"  # Default to the original IP
+
 @app.route('/record', methods=['POST'])
 def record():
     """Handle start, stop recording, and transfer video requests."""
@@ -272,8 +284,8 @@ def record():
             new_mp4_output = f"{pi_name}_{timestamp}.mp4"
             os.rename(mp4_output, new_mp4_output)
 
-            # Transfer the file to the central server
-            central_server_ip = "192.168.10.100"  # Replace with the actual IP address of the central server
+            # Determine the central server IP
+            central_server_ip = get_central_server_ip()
             central_server_path = "piCamControlOutput/"  # Replace with the actual path on the central server
             scp_command = f"scp {new_mp4_output} chadfinnerty@{central_server_ip}:{central_server_path}"
             os.system(scp_command)
@@ -335,8 +347,8 @@ def take_photo():
         new_photo_filename = f"{pi_name}_{timestamp}.png"
         os.rename(photo_filename, new_photo_filename)
 
-        # Transfer the photo to the central server
-        central_server_ip = "192.168.10.100"  # Replace with the actual IP address of the central server
+        # Determine the central server IP
+        central_server_ip = get_central_server_ip()
         central_server_path = "piCamControlOutput/"  # Replace with the actual path on the central server
         scp_command = f"scp {new_photo_filename} chadfinnerty@{central_server_ip}:{central_server_path}"
         os.system(scp_command)

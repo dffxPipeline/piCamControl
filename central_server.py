@@ -16,9 +16,13 @@ def get_host_ip():
         return None
 
 # Adjust the Raspberry Pi IP list based on the host's IP
-#host_ip = get_host_ip()
-host_ip = "192.168.10.100"
-if host_ip == "192.168.10.100":
+host_ip = get_host_ip()
+if host_ip == "192.168.48.100":
+    raspberry_pi_ips = [
+        "192.168.48.115",
+        "192.168.48.120"
+    ]
+else:
     raspberry_pi_ips = [
         "192.168.10.111",
         "192.168.10.112",
@@ -77,11 +81,6 @@ if host_ip == "192.168.10.100":
         #"192.168.48.115",
         #"192.168.48.120"
         # Add all other IP addresses here
-    ]
-else:
-    raspberry_pi_ips = [
-        "192.168.48.115",
-        "192.168.48.120"
     ]
 
 def get_servos_status():
