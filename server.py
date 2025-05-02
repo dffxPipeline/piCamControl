@@ -180,10 +180,16 @@ def is_camera_in_use():
         return False
 
 def get_central_server_ip():
-    """Determine the central server IP based on the host IP address."""
+    """Determine the central server IP based on the host's active network interface."""
     try:
-        host_ip = socket.gethostbyname(socket.gethostname())
+        # Create a socket to determine the actual IP address
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            # Connect to a public IP (Google's DNS) to determine the active interface
+            s.connect(("8.8.8.8", 80))
+            host_ip = s.getsockname()[0]  # Get the IP address of the active interface
         print(f"Host IP address: {host_ip}")  # Print the host IP address
+
+        # Determine the central server IP based on the host IP
         if host_ip.startswith("192.168.48."):
             central_server_ip = "192.168.48.100"
         else:
