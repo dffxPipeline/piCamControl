@@ -3,6 +3,7 @@ import requests
 import os
 import socket
 import subprocess
+from concurrent.futures import ThreadPoolExecutor
 
 app = Flask(__name__)
 
@@ -163,40 +164,49 @@ def record():
     errors = []
 
     if action == "stop_recording":
-        # Step 1: Stop recording on all Raspberry Pis
-        for ip in raspberry_pi_ips:
+        # Step 1: Stop recording on all Raspberry Pis concurrently
+        def stop_recording(ip):
             try:
                 response = requests.post(f'http://{ip}:5000/record', json={'action': 'stop_recording'})
                 response.raise_for_status()
                 if not response.json().get('success', False):
                     raise Exception(response.json().get('error', 'Unknown error'))
-
-                # Print IP and message indicating recording stopped
                 print(f"Recording stopped on {ip}")
             except requests.RequestException as e:
                 print(f"Error stopping recording on {ip}: {e}")
-                success = False
-                errors.append(f"Error stopping recording on {ip}: {e}")
+                return f"Error stopping recording on {ip}: {e}"
 
-        # Step 2: Transfer video files to the central server and delete them
-        for ip in raspberry_pi_ips:
+        with ThreadPoolExecutor() as executor:
+            results = list(executor.map(stop_recording, raspberry_pi_ips))
+
+        # Collect errors from the results
+        errors = [result for result in results if result]
+        if errors:
+            success = False
+
+        # Step 2: Transfer video files to the central server concurrently
+        def transfer_video(ip):
             try:
-                # Print message indicating file transfer is starting
                 print(f"Starting file transfer from {ip}...")
                 response = requests.post(f'http://{ip}:5000/record', json={'action': 'transfer_video'})
                 response.raise_for_status()
                 if not response.json().get('success', False):
                     raise Exception(response.json().get('error', 'Unknown error'))
-
-                # Print message indicating file transfer is complete
                 print(f"File transfer from {ip} completed successfully.")
             except requests.RequestException as e:
                 print(f"Error transferring video from {ip}: {e}")
-                success = False
-                errors.append(f"Error transferring video from {ip}: {e}")
+                return f"Error transferring video from {ip}: {e}"
+
+        with ThreadPoolExecutor() as executor:
+            results = list(executor.map(transfer_video, raspberry_pi_ips))
+
+        # Collect errors from the results
+        errors.extend([result for result in results if result])
+        if errors:
+            success = False
 
     else:
-        # Start recording on all Raspberry Pis
+        # Start recording on all Raspberry Pis (sequentially for simplicity)
         for ip in raspberry_pi_ips:
             try:
                 response = requests.post(f'http://{ip}:5000/record', json={'action': action})
