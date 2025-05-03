@@ -170,6 +170,9 @@ def record():
                 response.raise_for_status()
                 if not response.json().get('success', False):
                     raise Exception(response.json().get('error', 'Unknown error'))
+
+                # Print IP and message indicating recording stopped
+                print(f"Recording stopped on {ip}")
             except requests.RequestException as e:
                 print(f"Error stopping recording on {ip}: {e}")
                 success = False
@@ -178,10 +181,15 @@ def record():
         # Step 2: Transfer video files to the central server and delete them
         for ip in raspberry_pi_ips:
             try:
+                # Print message indicating file transfer is starting
+                print(f"Starting file transfer from {ip}...")
                 response = requests.post(f'http://{ip}:5000/record', json={'action': 'transfer_video'})
                 response.raise_for_status()
                 if not response.json().get('success', False):
                     raise Exception(response.json().get('error', 'Unknown error'))
+
+                # Print message indicating file transfer is complete
+                print(f"File transfer from {ip} completed successfully.")
             except requests.RequestException as e:
                 print(f"Error transferring video from {ip}: {e}")
                 success = False
