@@ -205,18 +205,31 @@ def record():
         if errors:
             success = False
 
-    else:
-        # Start recording on all Raspberry Pis (sequentially for simplicity)
-        for ip in raspberry_pi_ips:
+    elif action == "start_recording":
+        # Start recording on all Raspberry Pis concurrently
+        def start_recording(ip):
             try:
-                response = requests.post(f'http://{ip}:5000/record', json={'action': action})
+                print(f"Starting recording on {ip}...")
+                response = requests.post(f'http://{ip}:5000/record', json={'action': 'start_recording'})
                 response.raise_for_status()
                 if not response.json().get('success', False):
                     raise Exception(response.json().get('error', 'Unknown error'))
+                print(f"Recording started on {ip}")
             except requests.RequestException as e:
                 print(f"Error starting recording on {ip}: {e}")
-                success = False
-                errors.append(f"Error starting recording on {ip}: {e}")
+                return f"Error starting recording on {ip}: {e}"
+
+        with ThreadPoolExecutor() as executor:
+            results = list(executor.map(start_recording, raspberry_pi_ips))
+
+        # Collect errors from the results
+        errors = [result for result in results if result]
+        if errors:
+            success = False
+
+    else:
+        errors.append(f"Unknown action: {action}")
+        success = False
 
     return jsonify({'success': success, 'errors': errors})
 
