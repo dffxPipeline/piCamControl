@@ -318,21 +318,34 @@ def take_photo():
     messages = []
     errors = []
 
-    for ip in raspberry_pi_ips:
+    # Function to trigger photo capture on a single Raspberry Pi
+    def capture_photo(ip):
         try:
-            # Trigger the take_photo endpoint on the Raspberry Pi
+            print(f"Triggering photo capture on {ip}...")
             response = requests.post(f'http://{ip}:5000/take_photo', timeout=10)
             response.raise_for_status()
             data = response.json()
 
             if data.get('success', False):
-                messages.append(f"Photo taken successfully on {ip}.")
+                print(f"Photo taken successfully on {ip}.")
+                return None  # No error
             else:
-                errors.append(f"Error taking photo on {ip}: {data.get('error', 'Unknown error')}")
-                success = False
+                error_message = f"Error taking photo on {ip}: {data.get('error', 'Unknown error')}"
+                print(error_message)
+                return error_message
         except requests.RequestException as e:
-            errors.append(f"Error communicating with {ip}: {e}")
-            success = False
+            error_message = f"Error communicating with {ip}: {e}"
+            print(error_message)
+            return error_message
+
+    # Use ThreadPoolExecutor to send requests concurrently
+    with ThreadPoolExecutor() as executor:
+        results = list(executor.map(capture_photo, raspberry_pi_ips))
+
+    # Collect errors from the results
+    errors = [result for result in results if result]
+    if errors:
+        success = False
 
     return jsonify({'success': success, 'message': messages, 'errors': errors})
 
