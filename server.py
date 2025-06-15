@@ -395,9 +395,40 @@ def take_photo():
             picam2.configure(preview_config)
             picam2.start()
 
+def get_frame_rate(h264_file):
+    """Retrieve the frame rate of an H.264 file using ffprobe."""
+    try:
+        command = [
+            "ffprobe",
+            "-v", "error",
+            "-select_streams", "v:0",
+            "-show_entries", "stream=r_frame_rate",
+            "-of", "default=noprint_wrappers=1:nokey=1",
+            h264_file
+        ]
+        result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if result.returncode == 0:
+            frame_rate = result.stdout.decode("utf-8").strip()
+            print(f"Frame rate of {h264_file}: {frame_rate} (raw format)")
+            # Convert the raw frame rate (e.g., "30000/1001") to a float
+            if "/" in frame_rate:
+                num, denom = map(int, frame_rate.split("/"))
+                frame_rate = num / denom
+            print(f"Frame rate of {h264_file}: {frame_rate} FPS")
+            return frame_rate
+        else:
+            print(f"Failed to retrieve frame rate: {result.stderr.decode('utf-8')}")
+            return None
+    except Exception as e:
+        print(f"Error retrieving frame rate: {e}")
+        return None
+
 def convert_to_mp4(h264_file, mp4_file):
     """Convert an H.264 file to MP4 using FFmpeg."""
     try:
+        # Print the frame rate before conversion
+        get_frame_rate(h264_file)
+
         command = [
             "ffmpeg",
             "-y",  # Overwrite output file if it exists
