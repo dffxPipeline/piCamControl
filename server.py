@@ -228,10 +228,10 @@ def record():
                     if picam2.started:
                         picam2.stop()
 
-                    # Create and apply the recording configuration with FrameDurationLimits for 60 FPS
+                    # Create and apply the recording configuration with FrameDurationLimits for 50 FPS
                     config = picam2.create_video_configuration(
                         main={"size": desired_resolution, "format": "H264"},
-                        controls={"FrameDurationLimits": (16666, 16666)}  # Set frame duration for 60 FPS
+                        controls={"FrameDurationLimits": (20000, 20000)}  # Set frame duration for 50 FPS
                     )
                     picam2.configure(config)
 
