@@ -231,7 +231,7 @@ def record():
                     # Create and apply the recording configuration
                     config = picam2.create_video_configuration(
                         main={"size": desired_resolution, "format": "H264"},
-                        controls={"FrameRate": 30}  # Lower the frame rate
+                        controls={"FrameRate": 30}  # Explicitly set the frame rate
                     )
                     picam2.configure(config)
 
@@ -401,10 +401,8 @@ def convert_to_mp4(h264_file, mp4_file):
         command = [
             "ffmpeg",
             "-y",  # Overwrite output file if it exists
-            "-framerate", "30",  # Specify the input frame rate (match your recording frame rate)
             "-i", h264_file,  # Input file
             "-c:v", "copy",  # Copy the video stream without re-encoding
-            "-r", "30",  # Set the output frame rate
             mp4_file  # Output file
         ]
         result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
