@@ -216,7 +216,8 @@ def record():
                     desired_resolution = (1280, 720)
                 else:
                     # Raspberry Pi HQ Camera
-                    desired_resolution = (2028, 1080)
+                    #desired_resolution = (2028, 1080)
+                    desired_resolution = (1280, 720)
 
                 # Check if the current configuration matches the desired resolution
                 current_config = picam2.camera_configuration()  # Call the method to get the configuration
@@ -230,7 +231,7 @@ def record():
                     # Create and apply the recording configuration
                     config = picam2.create_video_configuration(
                         main={"size": desired_resolution, "format": "H264"},
-                        controls={"FrameRate": 50}  # Lower the frame rate
+                        controls={"FrameRate": 30}  # Lower the frame rate
                     )
                     picam2.configure(config)
 
