@@ -229,7 +229,8 @@ def record():
 
                     # Create and apply the recording configuration
                     config = picam2.create_video_configuration(
-                        main={"size": desired_resolution}
+                        main={"size": desired_resolution, "format": "H264"},
+                        controls={"FrameRate": 30}  # Set frame rate to 30 FPS
                     )
                     picam2.configure(config)
 
