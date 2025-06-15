@@ -228,10 +228,10 @@ def record():
                     if picam2.started:
                         picam2.stop()
 
-                    # Create and apply the recording configuration with FrameDurationLimits for 50 FPS
+                    # Create and apply the recording configuration with FrameDurationLimits for 30 FPS
                     config = picam2.create_video_configuration(
                         main={"size": desired_resolution, "format": "H264"},
-                        controls={"FrameDurationLimits": (20000, 20000)}  # Set frame duration for 50 FPS
+                        controls={"FrameDurationLimits": (33333, 33333)}  # Set frame duration for 30 FPS
                     )
                     picam2.configure(config)
 
@@ -432,13 +432,14 @@ def convert_to_mp4(h264_file, mp4_file):
         command = [
             "ffmpeg",
             "-y",  # Overwrite output file if it exists
+            "-r", "30",  # Force the frame rate to 30 FPS
             "-i", h264_file,  # Input file
             "-c:v", "copy",  # Copy the video stream without re-encoding
             mp4_file  # Output file
         ]
         result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if result.returncode == 0:
-            print(f"Successfully converted {h264_file} to {mp4_file}")
+            print(f"Successfully converted {h264_file} to {mp4_file} at 30 FPS")
             return True
         else:
             print(f"Failed to convert {h264_file} to MP4: {result.stderr.decode('utf-8')}")
