@@ -113,32 +113,6 @@ except Exception as e:
     print("Camera not found. Exiting.")
     exit(1)
 
-def print_camera_capabilities():
-    """Print the available video resolutions and frame rates for the camera."""
-    try:
-        camera_info = picam2.camera_properties
-        print("Camera Capabilities:")
-        
-        # Print available resolutions
-        resolutions = camera_info.get("PixelArraySize", None)
-        if resolutions:
-            print(f"Available Resolutions: {resolutions}")
-        else:
-            print("No resolution information available.")
-
-        # Print available frame rates
-        frame_rates = camera_info.get("FrameRates", None)
-        if frame_rates:
-            print(f"Available Frame Rates: {frame_rates}")
-        else:
-            print("No frame rate information available.")
-
-    except Exception as e:
-        print(f"Failed to retrieve camera capabilities: {e}")
-
-# Call the function after initializing the camera
-print_camera_capabilities()
-
 if servos_found:
     # Initialize PCA9685 for servo control
     kit = ServoKit(channels=16)
@@ -256,7 +230,7 @@ def record():
                     # Create and apply the recording configuration
                     config = picam2.create_video_configuration(
                         main={"size": desired_resolution, "format": "H264"},
-                        controls={"FrameRate": 15}  # Lower the frame rate
+                        controls={"FrameRate": 50}  # Lower the frame rate
                     )
                     picam2.configure(config)
 
