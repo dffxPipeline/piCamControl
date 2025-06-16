@@ -237,7 +237,7 @@ def record():
 
                 video_output = "video.h264"
                 cmd = [
-                    "rpicam-vid",
+                    "/usr/bin/rpicam-vid",  # Use full path to rpicam-vid
                     "--codec", "h264",
                     "--width", "1920",
                     "--height", "1080",
