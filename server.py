@@ -430,7 +430,7 @@ def get_video_metadata(h264_file):
             "ffprobe",
             "-v", "error",
             "-select_streams", "v:0",
-            "-show_entries", "stream=pix_fmt,colorspace",
+            "-show_entries", "stream=pix_fmt,colorspace,color_primaries,color_transfer,color_space",
             "-of", "default=noprint_wrappers=1:nokey=1",
             h264_file
         ]
