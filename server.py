@@ -7,7 +7,6 @@ import socket
 import pkg_resources
 
 def install(package):
-    """Install required packages."""
     if package == "python3-picamera2":
         if not is_system_package_installed(package):
             subprocess.check_call(["sudo", "apt", "install", "-y", "ffmpeg"])
@@ -17,8 +16,7 @@ def install(package):
             "libatlas-base-dev",
             "libhdf5-dev",
             "libhdf5-serial-dev",
-            "libjasper-dev",
-            "libcamera-apps"  # Add this line to ensure rpicam-vid is installed
+            "libjasper-dev"
         ]
         subprocess.check_call(["sudo", "apt", "update"])
         for sys_pkg in system_packages:
@@ -202,27 +200,9 @@ def get_central_server_ip():
         print(f"Failed to determine host IP: {e}")
         return "192.168.10.100"  # Default to the original IP
 
-def get_host_ip():
-    """Get the host IP address."""
-    try:
-        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-            s.connect(("8.8.8.8", 80))
-            host_ip = s.getsockname()[0]
-            return host_ip
-    except Exception as e:
-        print(f"Failed to get IP address: {e}")
-        return None
-
-def get_sync_mode():
-    """Determine if this instance should be server or client."""
-    host_ip = get_host_ip()
-    if host_ip == "192.168.48.115":
-        return "server"
-    return "client"
-
 @app.route('/record', methods=['POST'])
 def record():
-    """Handle start, stop recording using libcamera-vid."""
+    """Handle start, stop recording, and transfer video requests."""
     global recording_process
     data = request.get_json()
     action = data.get("action")
@@ -230,43 +210,72 @@ def record():
     if action == "start_recording":
         if recording_process is None:
             try:
-                host_ip = get_host_ip()
-                sync_mode = get_sync_mode()
-                print(f"IP Address: {host_ip}")
-                print(f"Sync Mode: {sync_mode}")
+                # Determine the desired resolution based on the camera type
+                if "64" in camera_model:
+                    # Arducam Hawkeye 64 MP Camera
+                    desired_resolution = (1280, 720)
+                else:
+                    # Raspberry Pi HQ Camera
+                    #desired_resolution = (2028, 1080)
+                    desired_resolution = (1280, 720)
+
+                # Check if the current configuration matches the desired resolution
+                current_config = picam2.camera_configuration()  # Call the method to get the configuration
+                current_resolution = current_config["main"]["size"] if current_config else None
+
+                if current_resolution != desired_resolution:
+                    # Stop the camera before reconfiguring
+                    if picam2.started:
+                        picam2.stop()
+
+                    # Create and apply the recording configuration with FrameDurationLimits for 30 FPS
+                    config = picam2.create_video_configuration(
+                        main={"size": desired_resolution, "format": "H264"},
+                        controls={"FrameDurationLimits": (33333, 33333)}  # Set frame duration for 30 FPS
+                    )
+                    picam2.configure(config)
+
+                    # Restart the camera
+                    picam2.start()
 
                 video_output = "video.h264"
-                cmd = [
-                    "/usr/bin/libcamera-vid",  # Changed from rpicam-vid to libcamera-vid
-                    "--codec", "h264",
-                    "--width", "1920",
-                    "--height", "1080",
-                    "--output", video_output,
-                    "--sync", sync_mode,
-                    "--framerate", "30"
-                ]
-
-                print(f"Starting recording with command: {' '.join(cmd)}")
-                recording_process = subprocess.Popen(cmd)
+                encoder = H264Encoder()
+                print("Starting video recording...")
+                #if "64" in camera_model:
+                    #picam2.set_controls({"AfMode": 1 ,"AfTrigger": 0})  # Ensure Auto Focus is on
+                picam2.start_recording(encoder, output=video_output)
+                print("Recording started successfully.")
+                recording_process = True
                 return jsonify({"success": True, "message": "Recording started successfully."})
             except Exception as e:
                 print(f"Failed to start recording: {e}")
                 return jsonify({"success": False, "error": str(e)})
         else:
+            print("Recording is already in progress.")
             return jsonify({"success": False, "error": "Already recording"})
-
     elif action == "stop_recording":
         if recording_process is not None:
             try:
-                recording_process.terminate()
-                recording_process.wait()
+                print("Stopping video recording...")
+                picam2.stop_recording()
                 recording_process = None
 
-                # Convert H.264 to MP4 (using your existing convert_to_mp4 function)
+                # Wait until the video file is closed
+                video_output = "video.h264"
+                while os.path.exists(video_output):
+                    try:
+                        with open(video_output, 'rb'):
+                            break
+                    except IOError:
+                        time.sleep(0.1)
+
+                print("Recording stopped successfully and file is closed.")
+
+                # Convert H.264 to MP4
                 mp4_output = "video.mp4"
-                if convert_to_mp4("video.h264", mp4_output):
-                    os.remove("video.h264")
-                    print("Converted to MP4 and removed H.264 file.")
+                if convert_to_mp4(video_output, mp4_output):
+                    os.remove(video_output)  # Remove the H.264 file after successful conversion
+                    print(f"Converted to MP4 and removed {video_output}.")
                 else:
                     print("Failed to convert to MP4. Keeping the H.264 file.")
 
@@ -275,6 +284,7 @@ def record():
                 print(f"Failed to stop recording: {e}")
                 return jsonify({"success": False, "error": str(e)})
         else:
+            print("No recording is in progress.")
             return jsonify({"success": False, "error": "Not recording"})
     elif action == "transfer_video":
         try:
