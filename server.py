@@ -222,7 +222,7 @@ def get_sync_mode():
 
 @app.route('/record', methods=['POST'])
 def record():
-    """Handle start, stop recording using rpicam-vid."""
+    """Handle start, stop recording using libcamera-vid."""
     global recording_process
     data = request.get_json()
     action = data.get("action")
@@ -237,7 +237,7 @@ def record():
 
                 video_output = "video.h264"
                 cmd = [
-                    "/usr/bin/rpicam-vid",  # Use full path to rpicam-vid
+                    "/usr/bin/libcamera-vid",  # Changed from rpicam-vid to libcamera-vid
                     "--codec", "h264",
                     "--width", "1920",
                     "--height", "1080",
