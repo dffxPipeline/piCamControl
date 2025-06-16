@@ -423,11 +423,37 @@ def get_frame_rate(h264_file):
         print(f"Error retrieving frame rate: {e}")
         return None
 
+def get_video_metadata(h264_file):
+    """Retrieve the pixel format and colorspace of an H.264 file using ffprobe."""
+    try:
+        command = [
+            "ffprobe",
+            "-v", "error",
+            "-select_streams", "v:0",
+            "-show_entries", "stream=pix_fmt,colorspace",
+            "-of", "default=noprint_wrappers=1:nokey=1",
+            h264_file
+        ]
+        result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        if result.returncode == 0:
+            metadata = result.stdout.decode("utf-8").strip()
+            print(f"Metadata of {h264_file}:\n{metadata}")
+            return metadata
+        else:
+            print(f"Failed to retrieve metadata: {result.stderr.decode('utf-8')}")
+            return None
+    except Exception as e:
+        print(f"Error retrieving metadata: {e}")
+        return None
+
 def convert_to_mp4(h264_file, mp4_file):
     """Convert an H.264 file to MP4 using FFmpeg."""
     try:
         # Print the frame rate before conversion
         get_frame_rate(h264_file)
+
+        # Print the pixel format and colorspace before conversion
+        get_video_metadata(h264_file)
 
         command = [
             "ffmpeg",
