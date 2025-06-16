@@ -95,17 +95,7 @@ except Exception as e:
 try:
     picam2 = Picamera2()
     config = picam2.create_preview_configuration(
-        main={
-            "format": "RGB888",  # Use RGB888 for consistent color representation
-            "size": (1280, 720)
-        },
-        controls={
-            "ColourGains": (1.0, 1.0),  # Adjust color gains if needed
-            "AwbMode": 1,  # Enable auto white balance
-            "Brightness": 0.0,  # Adjust brightness if necessary
-            "Contrast": 1.0,  # Default contrast
-            "Saturation": 1.0  # Default saturation
-        }
+        main={"format": "RGB888", "size": (1280, 720)}
     )
     picam2.configure(config)
     picam2.start()
