@@ -7,6 +7,7 @@ import socket
 import pkg_resources
 
 def install(package):
+    """Install required packages."""
     if package == "python3-picamera2":
         if not is_system_package_installed(package):
             subprocess.check_call(["sudo", "apt", "install", "-y", "ffmpeg"])
@@ -16,7 +17,8 @@ def install(package):
             "libatlas-base-dev",
             "libhdf5-dev",
             "libhdf5-serial-dev",
-            "libjasper-dev"
+            "libjasper-dev",
+            "libcamera-apps"  # Add this line to ensure rpicam-vid is installed
         ]
         subprocess.check_call(["sudo", "apt", "update"])
         for sys_pkg in system_packages:
