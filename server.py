@@ -539,26 +539,30 @@ def generate_frames():
     else:
         # Use rpicam-vid for Raspberry Pi HQ Camera
         try:
-            # Start rpicam-vid and pipe the output to cv2.VideoCapture
+            # Create a named pipe
+            pipe_path = "/tmp/rpicam_pipe"
+            if not os.path.exists(pipe_path):
+                os.mkfifo(pipe_path)
+
+            # Start rpicam-vid and output to the named pipe
             rpicam_command = [
                 "rpicam-vid",
-                "--codec", "h264",
+                "--codec", "mjpeg",
                 "--width", "1280",
                 "--height", "720",
                 "--framerate", "30",
                 "-t", "0",  # Disable timeout for continuous streaming
-                "-o", "-"   # Output to stdout
+                "-o", pipe_path  # Output to the named pipe
             ]
 
-            # Open a subprocess for rpicam-vid
             process = subprocess.Popen(
                 rpicam_command,
-                stdout=subprocess.PIPE,
+                stdout=subprocess.DEVNULL,
                 stderr=subprocess.PIPE
             )
 
-            # Use cv2.VideoCapture to read the video stream
-            video_capture = cv2.VideoCapture(process.stdout)
+            # Use cv2.VideoCapture to read from the named pipe
+            video_capture = cv2.VideoCapture(pipe_path)
 
             while True:
                 ret, frame = video_capture.read()
@@ -578,6 +582,8 @@ def generate_frames():
             if process:
                 process.terminate()
                 process.wait()
+            if os.path.exists(pipe_path):
+                os.remove(pipe_path)
     print("Stopping video stream...")
 
 @app.route('/video_feed')
