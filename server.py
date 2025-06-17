@@ -523,19 +523,48 @@ def convert_to_mp4(h264_file, mp4_file):
 def generate_frames():
     """Continuously capture frames from the camera and stream via Flask."""
     print("Starting video stream...")
-    while True:
-        if picam2 is not None:
-            #if "64" in camera_model:
-                #picam2.set_controls({"AfMode": 1 ,"AfTrigger": 0})  # Ensure Auto Focus is on
-            frame = picam2.capture_array()
-            _, buffer = cv2.imencode('.jpg', frame)
-            frame_bytes = buffer.tobytes()
+    if "64" in camera_model:
+        # Use picam2 for Arducam Hawkeye 64 MP Camera
+        while True:
+            if picam2 is not None:
+                frame = picam2.capture_array()
+                _, buffer = cv2.imencode('.jpg', frame)
+                frame_bytes = buffer.tobytes()
 
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
-        else:
-            yield (b'--frame\r\n'
-                   b'Content-Type: image/jpeg\r\n\r\n' + b'\r\n')
+                yield (b'--frame\r\n'
+                       b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+            else:
+                yield (b'--frame\r\n'
+                       b'Content-Type: image/jpeg\r\n\r\n' + b'\r\n')
+    else:
+        # Use rpicam-vid for Raspberry Pi HQ Camera
+        try:
+            process = subprocess.Popen(
+                [
+                    "rpicam-vid",
+                    "--inline",  # Inline headers for MJPEG streaming
+                    "--width", "1280",
+                    "--height", "720",
+                    "--framerate", "30",
+                    "--output", "-"
+                ],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE
+            )
+
+            while True:
+                frame_bytes = process.stdout.read(1024)
+                if not frame_bytes:
+                    break
+
+                yield (b'--frame\r\n'
+                       b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+        except Exception as e:
+            print(f"Error during video streaming with rpicam-vid: {e}")
+        finally:
+            if process:
+                process.terminate()
+                process.wait()
     print("Stopping video stream...")
 
 @app.route('/video_feed')
