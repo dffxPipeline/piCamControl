@@ -7,6 +7,17 @@ import socket
 import pkg_resources
 import platform
 
+def is_bookworm():
+    """Check if the OS is Raspbian Bookworm."""
+    try:
+        with open("/etc/os-release", "r") as f:
+            os_release = f.read().lower()
+            print(f"Contents of /etc/os-release: {os_release}")  # Debugging output
+            return "bookworm" in os_release
+    except Exception as e:
+        print(f"Error reading /etc/os-release: {e}")
+        return False
+
 def install(package):
     if package == "python3-picamera2":
         if not is_system_package_installed(package):
@@ -20,9 +31,7 @@ def install(package):
         ]
 
         # Check if the OS is Bookworm
-        os_version = platform.version().lower()
-        print(f"Detected OS version: {os_version}")  # Print the OS version
-        if "bookworm" not in os_version:
+        if not is_bookworm():
             system_packages.append("libjasper-dev")  # Include libjasper-dev only if not Bookworm
 
         subprocess.check_call(["sudo", "apt", "update"])
