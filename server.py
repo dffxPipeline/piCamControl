@@ -334,19 +334,22 @@ def record():
             def restart_server():
                 """Restart the server."""
                 print("Restarting server...")
-                time.sleep(10)  # Increase the delay to 10 seconds to ensure the port is released
+                time.sleep(5)  # Wait for 10 seconds to ensure the port is released
 
-                # Check if the port is still in use before restarting
+                # Forcefully terminate any process using the port
                 port = 5000
-                while True:
-                    try:
-                        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-                            s.bind(("0.0.0.0", port))  # Try to bind to the port
-                            break  # If successful, break the loop
-                    except OSError:
-                        print(f"Port {port} is still in use. Waiting...")
-                        time.sleep(2)  # Wait for 2 seconds before checking again
+                try:
+                    result = subprocess.run(
+                        ["lsof", "-t", f"-i:{port}"], stdout=subprocess.PIPE, stderr=subprocess.PIPE
+                    )
+                    if result.stdout:
+                        pid = result.stdout.decode("utf-8").strip()
+                        print(f"Terminating process using port {port}: PID {pid}")
+                        subprocess.run(["kill", "-9", pid], check=True)
+                except Exception as e:
+                    print(f"Error terminating process on port {port}: {e}")
 
+                # Restart the server
                 os.execv(sys.executable, ['python'] + sys.argv)
 
             # Use a background thread to restart the server
