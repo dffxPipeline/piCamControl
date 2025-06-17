@@ -264,7 +264,6 @@ def record():
                         "-fps", "30"
                     ])
 
-                recording_process = True
                 return jsonify({"success": True, "message": "Recording started successfully."})
             except Exception as e:
                 print(f"Failed to start recording: {e}")
