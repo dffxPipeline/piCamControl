@@ -254,14 +254,14 @@ def record():
                     picam2.start_recording(encoder, output=video_output)
                 else:
                     # Use rpicam-vid for Raspberry Pi HQ Camera
-                    desired_resolution = "1280x720"
+                    desired_resolution = (1280, 720)
                     print("Starting video recording with rpicam-vid...")
                     recording_process = subprocess.Popen([
                         "rpicam-vid",
-                        "-o", video_output,
-                        "-w", desired_resolution.split('x')[0],
-                        "-h", desired_resolution.split('x')[1],
-                        "-fps", "30"
+                        "--output", video_output,
+                        "--width", str(desired_resolution[0]),
+                        "--height", str(desired_resolution[1]),
+                        "--framerate", "30"
                     ])
 
                 return jsonify({"success": True, "message": "Recording started successfully."})
