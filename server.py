@@ -539,7 +539,7 @@ def generate_frames():
     else:
         # Use rpicam-vid for Raspberry Pi HQ Camera
         try:
-            # Start rpicam-vid with MJPEG codec and TCP output
+            # Start rpicam-vid with MJPEG codec and output to stdout
             process = subprocess.Popen(
                 [
                     "rpicam-vid",
@@ -547,23 +547,21 @@ def generate_frames():
                     "--width", "1280",
                     "--height", "720",
                     "--framerate", "30",
-                    "-o", "tcp://0.0.0.0:8888"
+                    "-o", "-"
                 ],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE
             )
 
-            # Connect to the MJPEG stream over TCP
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                sock.connect(("127.0.0.1", 8888))  # Connect to the local TCP stream
-                while True:
-                    frame_bytes = sock.recv(4096)  # Read data from the TCP stream
-                    if not frame_bytes:
-                        print("No data received from rpicam-vid. Exiting stream loop.")
-                        break
+            # Read MJPEG frames from stdout
+            while True:
+                frame_bytes = process.stdout.read(4096)  # Adjust buffer size as needed
+                if not frame_bytes:
+                    print("No data received from rpicam-vid. Exiting stream loop.")
+                    break
 
-                    yield (b'--frame\r\n'
-                           b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+                yield (b'--frame\r\n'
+                       b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
         except Exception as e:
             print(f"Error during video streaming with rpicam-vid: {e}")
         finally:
