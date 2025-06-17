@@ -333,7 +333,7 @@ def record():
             # Restart the server after sending the response
             def restart_server():
                 print("Restarting server...")
-                time.sleep(1)  # Allow time for the response to be sent
+                time.sleep(5)  # Wait for 5 seconds to ensure the port is released
                 os.execv(sys.executable, ['python'] + sys.argv)
 
             # Use a background thread to restart the server
