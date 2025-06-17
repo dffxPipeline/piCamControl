@@ -230,41 +230,40 @@ def record():
     if action == "start_recording":
         if recording_process is None:
             try:
-                # Determine the desired resolution based on the camera type
-                if "64" in camera_model:
-                    # Arducam Hawkeye 64 MP Camera
-                    desired_resolution = (1280, 720)
-                else:
-                    # Raspberry Pi HQ Camera
-                    #desired_resolution = (2028, 1080)
-                    desired_resolution = (1280, 720)
-
-                # Check if the current configuration matches the desired resolution
-                current_config = picam2.camera_configuration()  # Call the method to get the configuration
-                current_resolution = current_config["main"]["size"] if current_config else None
-
-                if current_resolution != desired_resolution:
-                    # Stop the camera before reconfiguring
-                    if picam2.started:
-                        picam2.stop()
-
-                    # Create and apply the recording configuration with FrameDurationLimits for 30 FPS
-                    config = picam2.create_video_configuration(
-                        main={"size": desired_resolution, "format": "H264"},
-                        controls={"FrameDurationLimits": (33333, 33333)}  # Set frame duration for 30 FPS
-                    )
-                    picam2.configure(config)
-
-                    # Restart the camera
-                    picam2.start()
-
                 video_output = "video.h264"
-                encoder = H264Encoder()
-                print("Starting video recording...")
-                #if "64" in camera_model:
-                    #picam2.set_controls({"AfMode": 1 ,"AfTrigger": 0})  # Ensure Auto Focus is on
-                picam2.start_recording(encoder, output=video_output)
-                print("Recording started successfully.")
+
+                if "64" in camera_model:
+                    # Use picamera2 for Arducam Hawkeye 64 MP Camera
+                    desired_resolution = (1280, 720)
+                    current_config = picam2.camera_configuration()
+                    current_resolution = current_config["main"]["size"] if current_config else None
+
+                    if current_resolution != desired_resolution:
+                        if picam2.started:
+                            picam2.stop()
+
+                        config = picam2.create_video_configuration(
+                            main={"size": desired_resolution, "format": "H264"},
+                            controls={"FrameDurationLimits": (33333, 33333)}
+                        )
+                        picam2.configure(config)
+                        picam2.start()
+
+                    encoder = H264Encoder()
+                    print("Starting video recording with picamera2...")
+                    picam2.start_recording(encoder, output=video_output)
+                else:
+                    # Use rpicam-vid for Raspberry Pi HQ Camera
+                    desired_resolution = "1280x720"
+                    print("Starting video recording with rpicam-vid...")
+                    recording_process = subprocess.Popen([
+                        "rpicam-vid",
+                        "-o", video_output,
+                        "-w", desired_resolution.split('x')[0],
+                        "-h", desired_resolution.split('x')[1],
+                        "-fps", "30"
+                    ])
+
                 recording_process = True
                 return jsonify({"success": True, "message": "Recording started successfully."})
             except Exception as e:
@@ -277,7 +276,14 @@ def record():
         if recording_process is not None:
             try:
                 print("Stopping video recording...")
-                picam2.stop_recording()
+                if "64" in camera_model:
+                    # Stop recording with picamera2
+                    picam2.stop_recording()
+                else:
+                    # Stop recording with rpicam-vid
+                    recording_process.terminate()
+                    recording_process.wait()
+
                 recording_process = None
 
                 # Wait until the video file is closed
