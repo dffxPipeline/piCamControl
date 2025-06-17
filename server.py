@@ -547,6 +547,7 @@ def generate_frames():
                     "--width", "1280",
                     "--height", "720",
                     "--framerate", "30",
+                    "-t", "0",  # Disable timeout for continuous streaming
                     "-o", "-"
                 ],
                 stdout=subprocess.PIPE,
