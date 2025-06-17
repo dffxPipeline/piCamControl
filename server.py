@@ -334,7 +334,28 @@ def record():
             def restart_server():
                 """Restart the server."""
                 print("Restarting server...")
-                os.execv(sys.executable, ['python'] + sys.argv)
+
+                if is_bookworm():
+                    print("Detected Raspbian Bookworm. Applying Bookworm-specific restart logic.")
+                    # Get the current process ID (PID)
+                    current_pid = os.getpid()
+                    print(f"Current process PID: {current_pid}")
+
+                    # Use a subprocess to restart the server after killing the current process
+                    python_executable = sys.executable
+                    script_path = sys.argv[0]
+
+                    # Start a new process to run the server
+                    subprocess.Popen([python_executable, script_path])
+
+                    # Allow some time for the new process to start
+                    time.sleep(2)
+
+                    # Terminate the current process
+                    os.kill(current_pid, signal.SIGTERM)
+                else:
+                    print("Non-Bookworm OS detected. Using standard restart logic.")
+                    os.execv(sys.executable, ['python'] + sys.argv)
 
             # Use a background thread to restart the server
             import threading
