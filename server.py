@@ -21,6 +21,7 @@ def install(package):
 
         # Check if the OS is Bookworm
         os_version = platform.version().lower()
+        print(f"Detected OS version: {os_version}")  # Print the OS version
         if "bookworm" not in os_version:
             system_packages.append("libjasper-dev")  # Include libjasper-dev only if not Bookworm
 
