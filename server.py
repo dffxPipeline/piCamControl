@@ -43,7 +43,10 @@ def install(package):
             subprocess.check_call(["sudo", "apt", "install", "-y", package])
     else:
         if not is_python_package_installed(package):
-            subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+            pip_command = [sys.executable, "-m", "pip", "install", package]
+            if is_bookworm():
+                pip_command.append("--break-system-packages")
+            subprocess.check_call(pip_command)
 
 def is_python_package_installed(package):
     """Check if a Python package is installed."""
