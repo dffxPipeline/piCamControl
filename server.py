@@ -539,27 +539,36 @@ def generate_frames():
     else:
         # Use rpicam-vid for Raspberry Pi HQ Camera
         try:
-            # Start rpicam-vid with MJPEG codec and output to stdout
+            # Start rpicam-vid and pipe the output to cv2.VideoCapture
+            rpicam_command = [
+                "rpicam-vid",
+                "--codec", "h264",
+                "--width", "1280",
+                "--height", "720",
+                "--framerate", "30",
+                "-t", "0",  # Disable timeout for continuous streaming
+                "-o", "-"   # Output to stdout
+            ]
+
+            # Open a subprocess for rpicam-vid
             process = subprocess.Popen(
-                [
-                    "rpicam-vid",
-                    "--codec", "mjpeg",
-                    "--width", "1280",
-                    "--height", "720",
-                    "--framerate", "30",
-                    "-t", "0",  # Disable timeout for continuous streaming
-                    "-o", "-"
-                ],
+                rpicam_command,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE
             )
 
-            # Read MJPEG frames from stdout
+            # Use cv2.VideoCapture to read the video stream
+            video_capture = cv2.VideoCapture(process.stdout)
+
             while True:
-                frame_bytes = process.stdout.read(4096)  # Adjust buffer size as needed
-                if not frame_bytes:
-                    print("No data received from rpicam-vid. Exiting stream loop.")
+                ret, frame = video_capture.read()
+                if not ret:
+                    print("No frame received from rpicam-vid. Exiting stream loop.")
                     break
+
+                # Encode the frame as JPEG
+                _, buffer = cv2.imencode('.jpg', frame)
+                frame_bytes = buffer.tobytes()
 
                 yield (b'--frame\r\n'
                        b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
