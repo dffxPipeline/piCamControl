@@ -5,6 +5,7 @@ import time
 import datetime
 import socket
 import pkg_resources
+import platform
 
 def install(package):
     if package == "python3-picamera2":
@@ -15,9 +16,14 @@ def install(package):
         system_packages = [
             "libatlas-base-dev",
             "libhdf5-dev",
-            "libhdf5-serial-dev",
-            "libjasper-dev"
+            "libhdf5-serial-dev"
         ]
+
+        # Check if the OS is Bookworm
+        os_version = platform.version().lower()
+        if "bookworm" not in os_version:
+            system_packages.append("libjasper-dev")  # Include libjasper-dev only if not Bookworm
+
         subprocess.check_call(["sudo", "apt", "update"])
         for sys_pkg in system_packages:
             if not is_system_package_installed(sys_pkg):
