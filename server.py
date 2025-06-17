@@ -6,6 +6,7 @@ import datetime
 import socket
 import pkg_resources
 import platform
+import signal
 
 def is_bookworm():
     """Check if the OS is Raspbian Bookworm."""
