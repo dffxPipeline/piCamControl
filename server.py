@@ -553,8 +553,10 @@ def generate_frames():
             )
 
             while True:
-                frame_bytes = process.stdout.read(1024)
+                # Read a chunk of data from the process
+                frame_bytes = process.stdout.read(4096)  # Increased buffer size
                 if not frame_bytes:
+                    print("No data received from rpicam-vid. Exiting stream loop.")
                     break
 
                 yield (b'--frame\r\n'
