@@ -332,13 +332,10 @@ def record():
 
             # Restart the server after sending the response
             def restart_server():
-                """Restart the server only if the OS is not Raspbian Bookworm."""
-                if not is_bookworm():
-                    print("Restarting server...")
-                    time.sleep(5)  # Wait for 5 seconds to ensure the port is released
-                    os.execv(sys.executable, ['python'] + sys.argv)
-                else:
-                    print("Server restart skipped because the OS is Raspbian Bookworm.")
+                """Restart the server."""
+                print("Restarting server...")
+                time.sleep(5)  # Wait for 5 seconds to ensure the port is released
+                os.execv(sys.executable, ['python'] + sys.argv)
 
             # Use a background thread to restart the server
             import threading
