@@ -255,6 +255,10 @@ def record():
                     picam2.start_recording(encoder, output=video_output)
                     is_recording = True  # Set the recording flag
                 else:
+                    # Stop picamera2 to release the camera resource
+                    if picam2.started:
+                        picam2.stop()
+
                     # Use rpicam-vid for Raspberry Pi HQ Camera
                     desired_resolution = (1280, 720)
                     print("Starting video recording with rpicam-vid...")
