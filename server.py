@@ -115,22 +115,27 @@ except Exception as e:
 # Initialize camera
 try:
     picam2 = Picamera2()
-    config = picam2.create_preview_configuration(
-        main={"format": "RGB888", "size": (1280, 720)},
-        transform=libcamera.Transform(hflip=1, vflip=1)  # Rotate 180 degrees
-    )
-    picam2.configure(config)
-    picam2.start()
-
-    # Check and print camera type
     camera_info = picam2.camera_properties
     camera_model = camera_info.get("Model", "")  # Store the camera model name
+
     if "64" in camera_model:
         print("Arducam Hawkeye 64 MP Camera found.")
+        # Rotate 180 degrees for 64MP camera
+        config = picam2.create_preview_configuration(
+            main={"format": "RGB888", "size": (1280, 720)},
+            transform=libcamera.Transform(hflip=1, vflip=1)  # Rotate 180 degrees
+        )
         # Turn on Auto Focus for stream and video
         picam2.set_controls({"AfMode": 1, "AfTrigger": 0})  # Assuming '1' enables Auto Focus
     else:
         print("Raspberry Pi HQ Camera found.")
+        # No rotation for other cameras
+        config = picam2.create_preview_configuration(
+            main={"format": "RGB888", "size": (1280, 720)}
+        )
+
+    picam2.configure(config)
+    picam2.start()
 except Exception as e:
     print("Camera not found. Exiting.")
     exit(1)
