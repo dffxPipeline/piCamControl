@@ -275,12 +275,21 @@ def record():
                     # Use rpicam-vid for Raspberry Pi HQ Camera
                     desired_resolution = (1280, 720)
                     print("Starting video recording with rpicam-vid...")
+
+                    # Determine the --sync flag based on the IP address
+                    with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+                        s.connect(("8.8.8.8", 80))
+                        host_ip = s.getsockname()[0]
+
+                    sync_flag = "--sync server" if host_ip == "192.168.48.81" else "--sync client"
+
                     recording_process = subprocess.Popen([
                         "rpicam-vid",
                         "--output", video_output,
                         "--width", str(desired_resolution[0]),
                         "--height", str(desired_resolution[1]),
-                        "--framerate", "30"
+                        "--framerate", "30",
+                        sync_flag
                     ])
 
                 return jsonify({"success": True, "message": "Recording started successfully."})
