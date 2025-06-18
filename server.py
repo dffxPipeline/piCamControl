@@ -523,67 +523,19 @@ def convert_to_mp4(h264_file, mp4_file):
 def generate_frames():
     """Continuously capture frames from the camera and stream via Flask."""
     print("Starting video stream...")
-    if "64" in camera_model:
-        # Use picam2 for Arducam Hawkeye 64 MP Camera
-        while True:
-            if picam2 is not None:
-                frame = picam2.capture_array()
-                _, buffer = cv2.imencode('.jpg', frame)
-                frame_bytes = buffer.tobytes()
+    while True:
+        if picam2 is not None:
+            #if "64" in camera_model:
+                #picam2.set_controls({"AfMode": 1 ,"AfTrigger": 0})  # Ensure Auto Focus is on
+            frame = picam2.capture_array()
+            _, buffer = cv2.imencode('.jpg', frame)
+            frame_bytes = buffer.tobytes()
 
-                yield (b'--frame\r\n'
-                       b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
-            else:
-                yield (b'--frame\r\n'
-                       b'Content-Type: image/jpeg\r\n\r\n' + b'\r\n')
-    else:
-        # Use rpicam-vid for Raspberry Pi HQ Camera
-        try:
-            # Create a named pipe
-            pipe_path = "/tmp/rpicam_pipe"
-            if not os.path.exists(pipe_path):
-                os.mkfifo(pipe_path)
-
-            # Start rpicam-vid and output to the named pipe
-            rpicam_command = [
-                "rpicam-vid",
-                "--codec", "mjpeg",
-                "--width", "1280",
-                "--height", "720",
-                "--framerate", "30",
-                "-t", "0",  # Disable timeout for continuous streaming
-                "-o", pipe_path  # Output to the named pipe
-            ]
-
-            process = subprocess.Popen(
-                rpicam_command,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.PIPE
-            )
-
-            # Use cv2.VideoCapture to read from the named pipe
-            video_capture = cv2.VideoCapture(pipe_path)
-
-            while True:
-                ret, frame = video_capture.read()
-                if not ret:
-                    print("No frame received from rpicam-vid. Exiting stream loop.")
-                    break
-
-                # Encode the frame as JPEG
-                _, buffer = cv2.imencode('.jpg', frame)
-                frame_bytes = buffer.tobytes()
-
-                yield (b'--frame\r\n'
-                       b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
-        except Exception as e:
-            print(f"Error during video streaming with rpicam-vid: {e}")
-        finally:
-            if process:
-                process.terminate()
-                process.wait()
-            if os.path.exists(pipe_path):
-                os.remove(pipe_path)
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + frame_bytes + b'\r\n')
+        else:
+            yield (b'--frame\r\n'
+                   b'Content-Type: image/jpeg\r\n\r\n' + b'\r\n')
     print("Stopping video stream...")
 
 @app.route('/video_feed')
