@@ -258,6 +258,7 @@ def record():
                     # Stop picamera2 to release the camera resource
                     if picam2.started:
                         picam2.stop()
+                    picam2.close()  # Explicitly release the camera resources
 
                     # Use rpicam-vid for Raspberry Pi HQ Camera
                     desired_resolution = (1280, 720)
