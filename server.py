@@ -141,9 +141,11 @@ try:
         )
         # Adjust exposure and gain for HQ Camera
         picam2.set_controls({
-            "ExposureTime": 10000,  # Set exposure time in microseconds (adjust as needed)
-            "AnalogueGain": 2.0,    # Set gain (adjust as needed)
-            "Brightness": 0.5       # Adjust brightness (range: -1.0 to 1.0)
+            "ExposureTime": 30000,  # Increase exposure time to 30ms
+            "AnalogueGain": 4.0,    # Increase gain to brighten the image
+            "Brightness": 0.5,      # Adjust brightness (range: -1.0 to 1.0)
+            "AeEnable": True,      # Enable auto exposure
+            "AwbEnable": True,      # Enable auto white balance
         })
 
     picam2.configure(config)
