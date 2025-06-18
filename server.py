@@ -87,7 +87,7 @@ for package in required_packages:
 from flask import Flask, render_template, request, jsonify, Response
 from adafruit_servokit import ServoKit
 import cv2
-from picamera2 import Picamera2
+from picamera2 import Picamera2, libcamera
 from picamera2.encoders import H264Encoder
 from picamera2.outputs import FfmpegOutput
 import board
@@ -116,7 +116,8 @@ except Exception as e:
 try:
     picam2 = Picamera2()
     config = picam2.create_preview_configuration(
-        main={"format": "RGB888", "size": (1280, 720)}
+        main={"format": "RGB888", "size": (1280, 720)},
+        transform=libcamera.Transform(hflip=1, vflip=1)  # Rotate 180 degrees
     )
     picam2.configure(config)
     picam2.start()
