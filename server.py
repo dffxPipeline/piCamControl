@@ -100,6 +100,7 @@ servos_found = False
 picam2 = None  # Define picam2 outside the try block
 recording_process = None  # To keep track of the recording process
 camera_model = ""  # Variable to store the camera model name
+is_recording = False  # Tracks recording state for picamera2
 
 # Check if servos are connected
 try:
@@ -223,12 +224,12 @@ def get_central_server_ip():
 @app.route('/record', methods=['POST'])
 def record():
     """Handle start, stop recording, and transfer video requests."""
-    global recording_process
+    global recording_process, is_recording
     data = request.get_json()
     action = data.get("action")
 
     if action == "start_recording":
-        if recording_process is None:
+        if not is_recording and recording_process is None:
             try:
                 video_output = "video.h264"
 
@@ -252,6 +253,7 @@ def record():
                     encoder = H264Encoder()
                     print("Starting video recording with picamera2...")
                     picam2.start_recording(encoder, output=video_output)
+                    is_recording = True  # Set the recording flag
                 else:
                     # Use rpicam-vid for Raspberry Pi HQ Camera
                     desired_resolution = (1280, 720)
@@ -271,19 +273,20 @@ def record():
         else:
             print("Recording is already in progress.")
             return jsonify({"success": False, "error": "Already recording"})
+
     elif action == "stop_recording":
-        if recording_process is not None:
+        if is_recording or recording_process is not None:
             try:
                 print("Stopping video recording...")
-                if "64" in camera_model:
+                if "64" in camera_model and is_recording:
                     # Stop recording with picamera2
                     picam2.stop_recording()
-                else:
+                    is_recording = False  # Reset the recording flag
+                elif recording_process is not None:
                     # Stop recording with rpicam-vid
                     recording_process.terminate()
                     recording_process.wait()
-
-                recording_process = None
+                    recording_process = None
 
                 # Wait until the video file is closed
                 video_output = "video.h264"
