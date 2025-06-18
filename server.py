@@ -139,6 +139,12 @@ try:
         config = picam2.create_preview_configuration(
             main={"format": "RGB888", "size": (1280, 720)}
         )
+        # Adjust exposure and gain for HQ Camera
+        picam2.set_controls({
+            "ExposureTime": 10000,  # Set exposure time in microseconds (adjust as needed)
+            "AnalogueGain": 2.0,    # Set gain (adjust as needed)
+            "Brightness": 0.5       # Adjust brightness (range: -1.0 to 1.0)
+        })
 
     picam2.configure(config)
     picam2.start()
