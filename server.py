@@ -120,11 +120,17 @@ try:
 
     if "64" in camera_model:
         print("Arducam Hawkeye 64 MP Camera found.")
-        # Rotate 180 degrees for 64MP camera
-        config = picam2.create_preview_configuration(
-            main={"format": "RGB888", "size": (1280, 720)},
-            transform=libcamera.Transform(hflip=1, vflip=1)  # Rotate 180 degrees
-        )
+        if is_bookworm():  # Only rotate if the OS is Bookworm
+            print("Detected Raspbian Bookworm. Applying 180-degree rotation.")
+            config = picam2.create_preview_configuration(
+                main={"format": "RGB888", "size": (1280, 720)},
+                transform=libcamera.Transform(hflip=1, vflip=1)  # Rotate 180 degrees
+            )
+        else:
+            print("Non-Bookworm OS detected. No rotation applied.")
+            config = picam2.create_preview_configuration(
+                main={"format": "RGB888", "size": (1280, 720)}
+            )
         # Turn on Auto Focus for stream and video
         picam2.set_controls({"AfMode": 1, "AfTrigger": 0})  # Assuming '1' enables Auto Focus
     else:
