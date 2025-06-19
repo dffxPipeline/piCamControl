@@ -289,7 +289,8 @@ def record():
                         "--width", str(desired_resolution[0]),
                         "--height", str(desired_resolution[1]),
                         "--framerate", "30",
-                        sync_flag
+                        sync_flag,
+                        "--timeout", "0"  # Disable the 5-second timeout
                     ])
 
                 return jsonify({"success": True, "message": "Recording started successfully."})
