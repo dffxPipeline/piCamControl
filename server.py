@@ -579,5 +579,20 @@ def hostname():
     """Endpoint to get the hostname of the Raspberry Pi."""
     return jsonify({"hostname": socket.gethostname()})
 
+def add_ssh_key(ip):
+    """Add the SSH key of a Raspberry Pi to the known_hosts file."""
+    try:
+        print(f"Adding SSH key for {ip} to known_hosts...")
+        command = f"ssh-keyscan -H {ip} >> ~/.ssh/known_hosts"
+        subprocess.run(command, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        print(f"SSH key for {ip} added successfully.")
+    except subprocess.CalledProcessError as e:
+        print(f"Failed to add SSH key for {ip}: {e}")
+
+# Add SSH keys for all Raspberry Pi IPs
+raspberry_pi_ips = ["192.168.48.81", "192.168.10.81"]  # Update with actual IPs
+for ip in raspberry_pi_ips:
+    add_ssh_key(ip)
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=False)
