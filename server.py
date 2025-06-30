@@ -281,7 +281,12 @@ def record():
                         s.connect(("8.8.8.8", 80))
                         host_ip = s.getsockname()[0]
 
-                    sync_flag = f"--sync={ 'server' if host_ip == '192.168.48.81' else 'client' }"
+                    central_server_ip = get_central_server_ip()
+                    print(f"Central server IP used for sync: {central_server_ip}")  # Print the central server IP
+                    if central_server_ip == "192.168.10.100":
+                        sync_flag = f"--sync={'server' if host_ip == '192.168.10.111' else 'client'}"
+                    else:
+                        sync_flag = f"--sync={'server' if host_ip == '192.168.48.81' else 'client'}"
 
                     recording_process = subprocess.Popen([
                         "rpicam-vid",
