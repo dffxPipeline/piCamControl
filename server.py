@@ -243,9 +243,8 @@ def record():
     if action == "start_recording":
         if not is_recording and recording_process is None:
             try:
-                video_output = "video.h264"
-
                 if "64" in camera_model:
+                    video_output = "video.h264"
                     # Use picamera2 for Arducam Hawkeye 64 MP Camera
                     desired_resolution = (1280, 720)
                     current_config = picam2.camera_configuration()
@@ -267,13 +266,14 @@ def record():
                     picam2.start_recording(encoder, output=video_output)
                     is_recording = True  # Set the recording flag
                 else:
+                    video_output = "video.mjpeg"
                     # Stop picamera2 to release the camera resource
                     if picam2.started:
                         picam2.stop()
                     picam2.close()  # Explicitly release the camera resources
 
                     # Use rpicam-vid for Raspberry Pi HQ Camera
-                    desired_resolution = (1280, 720)
+                    desired_resolution = (4056, 3040)
                     print("Starting video recording with rpicam-vid...")
 
                     # Determine the --sync flag based on the IP address
@@ -291,8 +291,12 @@ def record():
                     recording_process = subprocess.Popen([
                         "rpicam-vid",
                         "--output", video_output,
+                        "--mode", "4056:3040:12:P",
                         "--width", str(desired_resolution[0]),
                         "--height", str(desired_resolution[1]),
+                        "--shutter", "41666",
+                        "--codec", "mjpeg",
+                        "--quality", "100",
                         "--framerate", "30",
                         sync_flag,
                         "--timeout", "0"  # Disable the 5-second timeout
@@ -321,7 +325,7 @@ def record():
                     recording_process = None
 
                 # Wait until the video file is closed
-                video_output = "video.h264"
+                video_output = "video.mjpeg" if "64" not in camera_model else "video.h264"
                 while os.path.exists(video_output):
                     try:
                         with open(video_output, 'rb'):
@@ -331,15 +335,19 @@ def record():
 
                 print("Recording stopped successfully and file is closed.")
 
-                # Convert H.264 to MP4
-                mp4_output = "video.mp4"
-                if convert_to_mp4(video_output, mp4_output):
-                    os.remove(video_output)  # Remove the H.264 file after successful conversion
-                    print(f"Converted to MP4 and removed {video_output}.")
+                # Check file extension and convert if needed
+                if video_output.endswith(".h264"):
+                    mp4_output = "video.mp4"
+                    if convert_to_mp4(video_output, mp4_output):
+                        os.remove(video_output)  # Remove the H.264 file after successful conversion
+                        print(f"Converted to MP4 and removed {video_output}.")
+                        return jsonify({"success": True, "message": "Recording stopped and converted to MP4."})
+                    else:
+                        print("Failed to convert to MP4. Keeping the H.264 file.")
+                        return jsonify({"success": False, "error": "Failed to convert to MP4."})
                 else:
-                    print("Failed to convert to MP4. Keeping the H.264 file.")
-
-                return jsonify({"success": True, "message": "Recording stopped and converted to MP4."})
+                    # For .mjpeg, no conversion needed
+                    return jsonify({"success": True, "message": "Recording stopped successfully."})
             except Exception as e:
                 print(f"Failed to stop recording: {e}")
                 return jsonify({"success": False, "error": str(e)})
@@ -348,24 +356,36 @@ def record():
             return jsonify({"success": False, "error": "Not recording"})
     elif action == "transfer_video":
         try:
-            # Rename the MP4 file to include the Raspberry Pi name and timestamp
+            # Determine which file to transfer
+            if os.path.exists("video.mp4"):
+                original_output = "video.mp4"
+                ext = "mp4"
+            elif os.path.exists("video.mjpeg"):
+                original_output = "video.mjpeg"
+                ext = "mjpeg"
+            elif os.path.exists("video.h264"):
+                original_output = "video.h264"
+                ext = "h264"
+            else:
+                return jsonify({"success": False, "error": "No video file found to transfer."})
+
+            # Rename the file to include the Raspberry Pi name and timestamp
             pi_name = socket.gethostname()
             timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            mp4_output = "video.mp4"
-            new_mp4_output = f"{pi_name}_{timestamp}.mp4"
-            os.rename(mp4_output, new_mp4_output)
+            new_output = f"{pi_name}_{timestamp}.{ext}"
+            os.rename(original_output, new_output)
 
             # Determine the central server IP
             central_server_ip = get_central_server_ip()
             central_server_path = "piCamControlOutput/"  # Replace with the actual path on the central server
-            scp_command = f"scp {new_mp4_output} chadfinnerty@{central_server_ip}:{central_server_path}"
+            scp_command = f"scp {new_output} chadfinnerty@{central_server_ip}:{central_server_path}"
             os.system(scp_command)
 
-            print(f"Video file {new_mp4_output} transferred to central server.")
+            print(f"Video file {new_output} transferred to central server.")
 
-            # Delete the MP4 file after transfer
-            os.remove(new_mp4_output)
-            print(f"Video file {new_mp4_output} deleted from local storage.")
+            # Delete the file after transfer
+            os.remove(new_output)
+            print(f"Video file {new_output} deleted from local storage.")
 
             # Send a success response **before** restarting the server
             response = jsonify({"success": True, "message": "Video transferred and deleted successfully."})
