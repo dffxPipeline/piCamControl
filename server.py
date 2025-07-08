@@ -267,6 +267,7 @@ def record():
                     is_recording = True  # Set the recording flag
                 else:
                     video_output = "video.mjpeg"
+                    pts_output = "timestamp.pts"
                     # Stop picamera2 to release the camera resource
                     if picam2.started:
                         picam2.stop()
@@ -296,10 +297,11 @@ def record():
                         "--height", str(desired_resolution[1]),
                         "--shutter", "41666",
                         "--codec", "mjpeg",
-                        "--quality", "100",
-                        "--framerate", "30",
+                        #"--quality", "100",
+                        "--framerate", "24",
                         sync_flag,
-                        "--timeout", "0"  # Disable the 5-second timeout
+                        "--timeout", "0",  # Disable the 5-second timeout
+                        "--save-pts", pts_output
                     ])
 
                 return jsonify({"success": True, "message": "Recording started successfully."})
@@ -375,17 +377,37 @@ def record():
             new_output = f"{pi_name}_{timestamp}.{ext}"
             os.rename(original_output, new_output)
 
+            # If a .pts file exists, rename it to match the video file (but with .pts extension)
+            pts_file = "timestamp.pts"
+            new_pts_file = f"{pi_name}_{timestamp}.pts"
+            if os.path.exists(pts_file):
+                os.rename(pts_file, new_pts_file)
+            else:
+                new_pts_file = None
+
             # Determine the central server IP
             central_server_ip = get_central_server_ip()
             central_server_path = "piCamControlOutput/"  # Replace with the actual path on the central server
+
+            # Transfer video file
             scp_command = f"scp {new_output} chadfinnerty@{central_server_ip}:{central_server_path}"
             os.system(scp_command)
 
-            print(f"Video file {new_output} transferred to central server.")
+            # Transfer pts file if it exists
+            if new_pts_file:
+                scp_pts_command = f"scp {new_pts_file} chadfinnerty@{central_server_ip}:{central_server_path}"
+                os.system(scp_pts_command)
 
-            # Delete the file after transfer
+            print(f"Video file {new_output} transferred to central server.")
+            if new_pts_file:
+                print(f"PTS file {new_pts_file} transferred to central server.")
+
+            # Delete the files after transfer
             os.remove(new_output)
             print(f"Video file {new_output} deleted from local storage.")
+            if new_pts_file:
+                os.remove(new_pts_file)
+                print(f"PTS file {new_pts_file} deleted from local storage.")
 
             # Send a success response **before** restarting the server
             response = jsonify({"success": True, "message": "Video transferred and deleted successfully."})
