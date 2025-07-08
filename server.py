@@ -287,7 +287,7 @@ def record():
                     if central_server_ip == "192.168.10.100":
                         sync_flag = f"--sync={'server' if host_ip == '192.168.10.111' else 'client'}"
                     else:
-                        sync_flag = f"--sync={'server' if host_ip == '192.168.48.81' else 'client'}"
+                        sync_flag = f"--sync={'server' if host_ip == '192.168.48.120' else 'client'}"
 
                     recording_process = subprocess.Popen([
                         "rpicam-vid",
