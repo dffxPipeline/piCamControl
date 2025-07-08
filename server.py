@@ -274,7 +274,7 @@ def record():
                     picam2.close()  # Explicitly release the camera resources
 
                     # Use rpicam-vid for Raspberry Pi HQ Camera
-                    desired_resolution = (4056, 3040)
+                    desired_resolution = (2028, 1520)
                     print("Starting video recording with rpicam-vid...")
 
                     # Determine the --sync flag based on the IP address
@@ -292,13 +292,13 @@ def record():
                     recording_process = subprocess.Popen([
                         "rpicam-vid",
                         "--output", video_output,
-                        "--mode", "4056:3040:12:P",
+                        "--mode", "2028:1520:12:P",
                         "--width", str(desired_resolution[0]),
                         "--height", str(desired_resolution[1]),
                         "--shutter", "41666",
                         "--codec", "mjpeg",
                         #"--quality", "100",
-                        "--framerate", "10",
+                        "--framerate", "24",
                         sync_flag,
                         "--timeout", "0",  # Disable the 5-second timeout
                         "--save-pts", pts_output
