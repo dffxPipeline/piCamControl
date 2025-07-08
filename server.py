@@ -298,7 +298,7 @@ def record():
                         "--shutter", "41666",
                         "--codec", "mjpeg",
                         #"--quality", "100",
-                        "--framerate", "24",
+                        "--framerate", "10",
                         sync_flag,
                         "--timeout", "0",  # Disable the 5-second timeout
                         "--save-pts", pts_output
