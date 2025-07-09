@@ -322,7 +322,7 @@ def record():
                     is_recording = False  # Reset the recording flag
                 elif recording_process is not None:
                     # Stop recording with rpicam-vid
-                    recording_process.terminate()
+                    recording_process.send_signal(signal.SIGINT)  # Graceful stop
                     recording_process.wait()
                     recording_process = None
 
