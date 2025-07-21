@@ -297,6 +297,8 @@ def record():
                         "--height", str(desired_resolution[1]),
                         "--shutter", "16666",  # 1/60 second - compromise between motion blur and brightness
                         "--gain", "8.0",       # Increased analog gain for maximum brightness
+                        "--denoise", "cdn_hq", # High quality color denoise for noise reduction
+                        "--tuning-file", "/usr/share/libcamera/ipa/rpi/vc4/imx477_noir.json",  # Use noise-optimized tuning if available
                         "--codec", "mjpeg",
                         #"--quality", "100",
                         "--framerate", "24",
