@@ -295,8 +295,8 @@ def record():
                         "--mode", "4056:3040:12:P",
                         "--width", str(desired_resolution[0]),
                         "--height", str(desired_resolution[1]),
-                        "--shutter", "8333",  # 1/120 second for motion blur reduction
-                        "--gain", "8.0",      # Increased analog gain to compensate for darkness
+                        "--shutter", "16666",  # 1/60 second - compromise between motion blur and brightness
+                        "--gain", "4.0",       # Reduced gain to minimize noise
                         "--codec", "mjpeg",
                         #"--quality", "100",
                         "--framerate", "24",
