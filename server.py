@@ -297,9 +297,6 @@ def record():
                         "--height", str(desired_resolution[1]),
                         "--shutter", "16666",  # 1/60 second - compromise between motion blur and brightness
                         "--gain", "8.0",       # Increased analog gain for maximum brightness
-                        #"--lens-position", "0.0",  # Set focus to infinity for maximum depth of field
-                        #"--denoise", "cdn_hq", # High quality color denoise for noise reduction
-                        #"--tuning-file", "/usr/share/libcamera/ipa/rpi/vc4/imx477.json",  # Use standard HQ cam tuning
                         "--codec", "mjpeg",
                         #"--quality", "100",
                         "--framerate", "24",
