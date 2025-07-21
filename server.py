@@ -296,8 +296,7 @@ def record():
                         "--width", str(desired_resolution[0]),
                         "--height", str(desired_resolution[1]),
                         "--shutter", "16666",  # 1/60 second - compromise between motion blur and brightness
-                        "--gain", "6.0",       # Increased gain for brighter video
-                        "--brightness", "0.1", # 10% digital brightness boost
+                        "--gain", "7.0",       # Increased analog gain for better image quality than digital brightness
                         "--codec", "mjpeg",
                         #"--quality", "100",
                         "--framerate", "24",
