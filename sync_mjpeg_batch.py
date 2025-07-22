@@ -48,7 +48,7 @@ def resync_video_with_pts(mjpeg_path, pts_path, output_path, master_pts, target_
         total_frames = len(indices)
         last_percent = -1
         for i, idx in enumerate(indices):
-            img_path = os.path.join(img_dir, f"frame_{i:05d}.png")
+            img_path = os.path.join(img_dir, f"frame_{i+1:05d}.png")
             cv2.imwrite(img_path, frames[idx])
             percent = int((i + 1) / total_frames * 100)
             if percent != last_percent and percent % 5 == 0:
@@ -65,7 +65,7 @@ def resync_video_with_pts(mjpeg_path, pts_path, output_path, master_pts, target_
         total_frames = len(indices)
         last_percent = -1
         for i, idx in enumerate(indices):
-            img_path = os.path.join(img_dir, f"frame_{i:05d}.jpg")
+            img_path = os.path.join(img_dir, f"frame_{i+1:05d}.jpg")
             cv2.imwrite(img_path, frames[idx], [int(cv2.IMWRITE_JPEG_QUALITY), 100])
             percent = int((i + 1) / total_frames * 100)
             if percent != last_percent and percent % 5 == 0:
