@@ -164,6 +164,7 @@ def record():
     success = True
     errors = []
 
+
     if action == "stop_recording":
         # Step 1: Stop recording on all Raspberry Pis concurrently
         def stop_recording(ip):
@@ -178,31 +179,39 @@ def record():
                 return f"Error stopping recording on {ip}: {e}"
 
         with ThreadPoolExecutor() as executor:
-            results = list(executor.map(stop_recording, raspberry_pi_ips))
+            stop_results = list(executor.map(stop_recording, raspberry_pi_ips))
 
-        # Collect errors from the results
-        errors = [result for result in results if result]
+        # Collect errors from the stop_recording results
+        errors = [result for result in stop_results if result]
         if errors:
             success = False
+            # If any errors occurred during stop_recording, do not proceed to transfer_video
+            return jsonify({'success': success, 'errors': errors})
 
-        # Step 2: Transfer video files to the central server concurrently
+        # Step 2: Transfer video files to the central server sequentially
         def transfer_video(ip):
             try:
                 print(f"Starting file transfer from {ip}...")
                 response = requests.post(f'http://{ip}:5000/record', json={'action': 'transfer_video'})
                 response.raise_for_status()
                 if not response.json().get('success', False):
-                    raise Exception(response.json().get('error', 'Unknown error'))
+                    error_msg = response.json().get('error', 'Unknown error')
+                    print(f"Error transferring video from {ip}: {error_msg}")
+                    return f"Error transferring video from {ip}: {error_msg}"
                 print(f"File transfer from {ip} completed successfully.")
             except requests.RequestException as e:
                 print(f"Error transferring video from {ip}: {e}")
                 return f"Error transferring video from {ip}: {e}"
 
-        with ThreadPoolExecutor() as executor:
-            results = list(executor.map(transfer_video, raspberry_pi_ips))
+        # Sequential transfer: one at a time
+        transfer_results = []
+        for ip in raspberry_pi_ips:
+            result = transfer_video(ip)
+            if result:
+                transfer_results.append(result)
 
-        # Collect errors from the results
-        errors.extend([result for result in results if result])
+        # Collect errors from the transfer_video results
+        errors.extend(transfer_results)
         if errors:
             success = False
 
