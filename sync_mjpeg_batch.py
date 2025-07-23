@@ -6,12 +6,13 @@ import os
 
 
 def resync_video_with_pts(mjpeg_path, pts_path, output_path, master_pts, target_fps=24, debug=False):
-    # Load PTS and normalize to start at 0
+    # Load PTS (do not normalize)
     pts = np.loadtxt(pts_path)
-    pts -= pts[0]
+    # Do not normalize master_pts
 
-    # Normalize master_pts to start at 0
-    master_pts = master_pts - master_pts[0]
+    if debug:
+        print(f"[DEBUG] Camera PTS: min={pts.min():.6f}, max={pts.max():.6f}, len={len(pts)}")
+        print(f"[DEBUG] Master PTS: min={master_pts.min():.6f}, max={master_pts.max():.6f}, len={len(master_pts)}")
 
     # Open MJPEG video
     cap = cv2.VideoCapture(mjpeg_path)
@@ -41,6 +42,9 @@ def resync_video_with_pts(mjpeg_path, pts_path, output_path, master_pts, target_
     indices = np.clip(indices, 0, len(frames) - 1)
 
     # Write out new synced video or PNG/JPEG sequence
+    def print_alignment(i, idx):
+        print(f"[ALIGN] Output frame {i+1:05d}: master_ts={master_pts[i]:.6f}  camera_ts={pts[idx]:.6f}  (cam_frame={idx})")
+
     if output_path.endswith(".pngseq"):
         img_dir = output_path[:-7]
         if not os.path.exists(img_dir):
@@ -48,6 +52,7 @@ def resync_video_with_pts(mjpeg_path, pts_path, output_path, master_pts, target_
         total_frames = len(indices)
         last_percent = -1
         for i, idx in enumerate(indices):
+            print_alignment(i, idx)
             img_path = os.path.join(img_dir, f"frame_{i+1:05d}.png")
             cv2.imwrite(img_path, frames[idx])
             percent = int((i + 1) / total_frames * 100)
@@ -65,6 +70,7 @@ def resync_video_with_pts(mjpeg_path, pts_path, output_path, master_pts, target_
         total_frames = len(indices)
         last_percent = -1
         for i, idx in enumerate(indices):
+            print_alignment(i, idx)
             img_path = os.path.join(img_dir, f"frame_{i+1:05d}.jpg")
             cv2.imwrite(img_path, frames[idx], [int(cv2.IMWRITE_JPEG_QUALITY), 100])
             percent = int((i + 1) / total_frames * 100)
@@ -82,6 +88,7 @@ def resync_video_with_pts(mjpeg_path, pts_path, output_path, master_pts, target_
         total_frames = len(indices)
         last_percent = -1
         for i, idx in enumerate(indices):
+            print_alignment(i, idx)
             out.write(frames[idx])
             percent = int((i + 1) / total_frames * 100)
             if percent != last_percent and percent % 5 == 0:
