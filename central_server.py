@@ -332,7 +332,7 @@ def take_photo():
     def capture_photo(ip):
         try:
             print(f"Triggering photo capture on {ip}...")
-            response = requests.post(f'http://{ip}:5000/take_photo', timeout=10)
+            response = requests.post(f'http://{ip}:5000/take_photo', timeout=60)
             response.raise_for_status()
             data = response.json()
 
