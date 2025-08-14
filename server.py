@@ -154,7 +154,7 @@ try:
         picam2.set_controls({
             "AeEnable": True,
             "AeExposureMode": controls.AeExposureModeEnum.Normal,
-            "AeMeteringMode": controls.AeMeteringModeEnum.CentreWeighted,
+            "AeMeteringMode": controls.AeMeteringModeEnum.Matrix,  # Use matrix metering for better scene adaptation
             # Anti-flicker for 60Hz mains (change to 20000 for 50Hz regions)
             "AeFlickerMode": controls.AeFlickerModeEnum.Manual,
             "AeFlickerPeriod": 16667,   # 60Hz period in microseconds
@@ -178,11 +178,11 @@ try:
             flicker_period = 16667  # 60Hz - change to 20000 for 50Hz
             sync_exposure = round(current_exposure / flicker_period) * flicker_period
             
-            # Ensure reasonable exposure time - moderate settings for balanced brightness
-            if sync_exposure < flicker_period * 2:  # Minimum 2x flicker period 
-                sync_exposure = flicker_period * 2
-            elif sync_exposure > flicker_period * 8:  # Reasonable cap for normal lighting
-                sync_exposure = flicker_period * 8
+            # Ensure reasonable exposure time - conservative settings to prevent overexposure
+            if sync_exposure < flicker_period * 1:  # Minimum 1x flicker period 
+                sync_exposure = flicker_period * 1
+            elif sync_exposure > flicker_period * 4:  # Lower cap to prevent overexposure
+                sync_exposure = flicker_period * 4
                 
             print(f"Setting synchronized manual exposure: {sync_exposure}μs (was {current_exposure}μs)")
             
@@ -190,7 +190,7 @@ try:
             picam2.set_controls({
                 "AeEnable": False,
                 "ExposureTime": sync_exposure,
-                "AnalogueGain": 2.0  # Moderate gain increase
+                "AnalogueGain": 1.5  # Reduce gain to prevent overexposure
             })
             time.sleep(1.0)
             print("Manual anti-flicker exposure applied")
@@ -594,7 +594,7 @@ def capture_photo():
                 picam2.set_controls({
                     "AeEnable": True,
                     "AeExposureMode": controls.AeExposureModeEnum.Normal,
-                    "AeMeteringMode": controls.AeMeteringModeEnum.CentreWeighted,
+                    "AeMeteringMode": controls.AeMeteringModeEnum.Matrix,  # Use matrix metering for better scene adaptation
                     "AeFlickerMode": controls.AeFlickerModeEnum.Manual,
                     "AeFlickerPeriod": 16667,   # 60Hz period
                     "AwbMode": controls.AwbModeEnum.Auto,
@@ -610,8 +610,8 @@ def capture_photo():
                     flicker_period = 16667
                     picam2.set_controls({
                         "AeEnable": False,
-                        "ExposureTime": flicker_period * 3,  # Moderate exposure time
-                        "AnalogueGain": 2.0  # Match startup gain
+                        "ExposureTime": flicker_period * 2,  # Reduce exposure time
+                        "AnalogueGain": 1.5  # Match startup gain
                     })
                 except Exception:
                     pass  # Fall back to auto if manual fails
