@@ -607,10 +607,22 @@ def capture_photo():
                 
                 # Reapply manual exposure if it was working
                 try:
+                    # Use the same logic as startup to calculate synchronized exposure
+                    metadata = picam2.capture_metadata()
+                    current_exposure = metadata.get("ExposureTime", 16667)
+                    
                     flicker_period = 16667
+                    sync_exposure = round(current_exposure / flicker_period) * flicker_period
+                    
+                    # Apply same constraints as startup
+                    if sync_exposure < flicker_period * 1:
+                        sync_exposure = flicker_period * 1
+                    elif sync_exposure > flicker_period * 4:
+                        sync_exposure = flicker_period * 4
+                    
                     picam2.set_controls({
                         "AeEnable": False,
-                        "ExposureTime": flicker_period * 2,  # Reduce exposure time
+                        "ExposureTime": sync_exposure,  # Use calculated sync_exposure, not fixed value
                         "AnalogueGain": 1.5  # Match startup gain
                     })
                 except Exception:
