@@ -201,26 +201,8 @@ try:
     except Exception as e:
         print(f"Failed to apply anti-flicker settings: {e}")
         
-    # Apply anti-flicker settings to the live preview feed from startup
-    try:
-        # Set anti-flicker controls for the preview/live feed
-        picam2.set_controls({
-            "AeEnable": True,
-            "AeExposureMode": controls.AeExposureModeEnum.Normal,
-            "AeMeteringMode": controls.AeMeteringModeEnum.CentreWeighted,
-            # Anti-flicker for 60Hz mains (change to 20000 for 50Hz regions)
-            "AeFlickerMode": controls.AeFlickerModeEnum.Manual,
-            "AeFlickerPeriod": 16667,   # 60Hz period in microseconds
-            "AwbMode": controls.AwbModeEnum.Auto,
-            # Improve preview image quality
-            "NoiseReductionMode": controls.draft.NoiseReductionModeEnum.HighQuality,
-            "Sharpness": 1.0,
-            "Contrast": 1.1,  # Slight contrast boost
-            "Brightness": 0.1,  # Brightness boost for darker conditions
-        })
-        print("Anti-flicker settings applied to live preview feed")
-    except Exception as e:
-        print(f"Failed to apply anti-flicker to preview: {e}")
+    # Settings are now applied - no need for duplicate preview controls since manual exposure is active
+    print("Camera initialization complete with optimized brightness settings")
 except Exception as e:
     print("Camera not found. Exiting.")
     exit(1)
