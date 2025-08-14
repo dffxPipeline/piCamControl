@@ -162,8 +162,8 @@ try:
             # Improve image quality
             "NoiseReductionMode": controls.draft.NoiseReductionModeEnum.HighQuality,
             "Sharpness": 1.0,
-            "Contrast": 1.0,
-            "Brightness": 0.0,
+            "Contrast": 1.1,  # Slight contrast boost
+            "Brightness": 0.1,  # Brightness boost for darker conditions
         })
         print("Anti-flicker settings applied successfully")
         time.sleep(2.0)  # Give settings time to take effect
@@ -179,10 +179,10 @@ try:
             sync_exposure = round(current_exposure / flicker_period) * flicker_period
             
             # Ensure reasonable exposure time - increase for darker conditions
-            if sync_exposure < flicker_period * 3:  # Minimum 3x flicker period for brightness
-                sync_exposure = flicker_period * 3
-            elif sync_exposure > flicker_period * 20:  # Increase cap for low light
-                sync_exposure = flicker_period * 20
+            if sync_exposure < flicker_period * 6:  # Minimum 6x flicker period for brightness
+                sync_exposure = flicker_period * 6
+            elif sync_exposure > flicker_period * 30:  # Increase cap for very low light
+                sync_exposure = flicker_period * 30
                 
             print(f"Setting synchronized manual exposure: {sync_exposure}μs (was {current_exposure}μs)")
             
@@ -190,7 +190,7 @@ try:
             picam2.set_controls({
                 "AeEnable": False,
                 "ExposureTime": sync_exposure,
-                "AnalogueGain": 3.0  # Increase gain for darker conditions
+                "AnalogueGain": 4.0  # Increase gain further for darker conditions
             })
             time.sleep(1.0)
             print("Manual anti-flicker exposure applied")
@@ -215,8 +215,8 @@ try:
             # Improve preview image quality
             "NoiseReductionMode": controls.draft.NoiseReductionModeEnum.HighQuality,
             "Sharpness": 1.0,
-            "Contrast": 1.0,
-            "Brightness": 0.0,
+            "Contrast": 1.1,  # Slight contrast boost
+            "Brightness": 0.1,  # Brightness boost for darker conditions
         })
         print("Anti-flicker settings applied to live preview feed")
     except Exception as e:
@@ -618,8 +618,8 @@ def capture_photo():
                     "AwbMode": controls.AwbModeEnum.Auto,
                     "NoiseReductionMode": controls.draft.NoiseReductionModeEnum.HighQuality,
                     "Sharpness": 1.0,
-                    "Contrast": 1.0,
-                    "Brightness": 0.0,
+                    "Contrast": 1.1,  # Slight contrast boost
+                    "Brightness": 0.1,  # Brightness boost for darker conditions
                 })
                 time.sleep(0.5)
                 
@@ -628,8 +628,8 @@ def capture_photo():
                     flicker_period = 16667
                     picam2.set_controls({
                         "AeEnable": False,
-                        "ExposureTime": flicker_period * 6,  # Increase for darker conditions
-                        "AnalogueGain": 3.0  # Match startup gain
+                        "ExposureTime": flicker_period * 8,  # Increase further for darker conditions
+                        "AnalogueGain": 4.0  # Match startup gain
                     })
                 except Exception:
                     pass  # Fall back to auto if manual fails
