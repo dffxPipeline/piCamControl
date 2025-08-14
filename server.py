@@ -90,6 +90,7 @@ import cv2
 from picamera2 import Picamera2, libcamera
 from picamera2.encoders import H264Encoder
 from picamera2.outputs import FfmpegOutput
+from libcamera import controls
 import board
 import busio
 from adafruit_pca9685 import PCA9685
@@ -469,7 +470,7 @@ def capture_photo():
     try:
         # Determine the desired resolution based on the camera type
         if "64" in camera_model:
-            # Arducam Hawkeye 64 MP Camera
+            # Arducam Hawkeye 64 MP Camera - keep original resolution
             desired_resolution = (1280, 720)
         else:
             # Raspberry Pi HQ Camera
@@ -484,16 +485,41 @@ def capture_photo():
             if picam2.started:
                 picam2.stop()
 
-            # Create and apply the still configuration
+            # Create and apply the still configuration with high quality settings
             config = picam2.create_still_configuration(
-                main={"size": desired_resolution}
+                main={"size": desired_resolution, "format": "RGB888"},
+                buffer_count=1
             )
             picam2.configure(config)
 
             # Restart the camera
             picam2.start()
 
-        # Capture the photo
+        # ---- Anti-flicker + quality controls ----
+        # Use AE with anti-flicker first (recommended)
+        picam2.set_controls({
+            "AeEnable": True,
+            "AeExposureMode": controls.AeExposureModeEnum.Normal,
+            "AeMeteringMode": controls.AeMeteringModeEnum.CentreWeighted,
+            # If you're in North America: use 60 Hz; Europe: use 50 Hz.
+            "AeFlickerMode": controls.AeFlickerModeEnum.Manual,
+            "AeFlickerPeriod": 16667,   # 60 Hz mains => 1/60 s in microseconds
+            # If you're in a 50 Hz region, change to 20000.
+            "AwbMode": controls.AwbModeEnum.Auto,
+            # High quality denoise
+            "NoiseReductionMode": controls.draft.NoiseReductionModeEnum.HighQuality,
+            "Sharpness": 1.0,
+            "Contrast": 1.0,
+            "Brightness": 0.0
+        })
+
+        # Let AE/AWB converge for a moment
+        try:
+            picam2.wait_for_convergence(timeout=2.0)
+        except Exception:
+            pass  # continue even if convergence times out
+
+        # Capture the photo with original filename format
         photo_filename = "photo.png"
         picam2.capture_file(photo_filename)
         print(f"Photo captured: {photo_filename}")
