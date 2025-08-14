@@ -143,6 +143,27 @@ try:
 
     picam2.configure(config)
     picam2.start()
+    
+    # Apply anti-flicker settings to the live preview feed from startup
+    try:
+        # Set anti-flicker controls for the preview/live feed
+        picam2.set_controls({
+            "AeEnable": True,
+            "AeExposureMode": controls.AeExposureModeEnum.Normal,
+            "AeMeteringMode": controls.AeMeteringModeEnum.CentreWeighted,
+            # Anti-flicker for 60Hz mains (change to 20000 for 50Hz regions)
+            "AeFlickerMode": controls.AeFlickerModeEnum.Manual,
+            "AeFlickerPeriod": 16667,   # 60Hz period in microseconds
+            "AwbMode": controls.AwbModeEnum.Auto,
+            # Improve preview image quality
+            "NoiseReductionMode": controls.draft.NoiseReductionModeEnum.HighQuality,
+            "Sharpness": 1.0,
+            "Contrast": 1.0,
+            "Brightness": 0.0,
+        })
+        print("Anti-flicker settings applied to live preview feed")
+    except Exception as e:
+        print(f"Failed to apply anti-flicker to preview: {e}")
 except Exception as e:
     print("Camera not found. Exiting.")
     exit(1)
@@ -495,59 +516,14 @@ def capture_photo():
             # Restart the camera
             picam2.start()
 
-        # ---- Anti-flicker + quality controls ----
-        # Use AE with anti-flicker first (recommended)
-        picam2.set_controls({
-            "AeEnable": True,
-            "AeExposureMode": controls.AeExposureModeEnum.Normal,
-            "AeMeteringMode": controls.AeMeteringModeEnum.CentreWeighted,
-            # If you're in North America: use 60 Hz; Europe: use 50 Hz.
-            "AeFlickerMode": controls.AeFlickerModeEnum.Manual,
-            "AeFlickerPeriod": 16667,   # 60 Hz mains => 1/60 s in microseconds
-            # If you're in a 50 Hz region, change to 20000.
-            "AwbMode": controls.AwbModeEnum.Auto,
-            # High quality denoise
-            "NoiseReductionMode": controls.draft.NoiseReductionModeEnum.HighQuality,
-            "Sharpness": 1.0,
-            "Contrast": 1.0,
-            "Brightness": 0.0
-        })
-
-        # Let AE/AWB converge for a moment
+        # ---- Use the already stabilized anti-flicker settings ----
+        # The camera already has anti-flicker settings from startup
+        # Let's just wait a bit longer for perfect stabilization before capture
         try:
-            picam2.wait_for_convergence(timeout=3.0)
+            picam2.wait_for_convergence(timeout=5.0)  # Extended wait for perfect stabilization
+            time.sleep(1.0)  # Additional wait to ensure the image is perfectly stable
         except Exception:
-            pass  # continue even if convergence times out
-
-        # If auto-exposure still causes banding, force manual exposure
-        # that's synchronized to the power line frequency
-        try:
-            # Get current exposure time from auto-exposure
-            metadata = picam2.capture_metadata()
-            current_exposure = metadata.get("ExposureTime", 16667)
-            
-            # Round to nearest multiple of flicker period to eliminate banding
-            flicker_period = 16667  # 60Hz period in microseconds
-            sync_exposure = round(current_exposure / flicker_period) * flicker_period
-            
-            # Ensure minimum exposure time
-            if sync_exposure < flicker_period:
-                sync_exposure = flicker_period
-                
-            print(f"Auto exposure: {current_exposure}μs, Sync exposure: {sync_exposure}μs")
-            
-            # Apply synchronized manual exposure to eliminate flicker
-            picam2.set_controls({
-                "AeEnable": False,          # Switch to manual
-                "ExposureTime": sync_exposure,  # Use flicker-synchronized exposure
-                "AnalogueGain": 1.0         # Keep gain reasonable
-            })
-            
-            # Wait a moment for the manual settings to take effect
-            time.sleep(0.5)
-            
-        except Exception as e:
-            print(f"Manual anti-flicker adjustment failed, using auto: {e}")
+            time.sleep(2.0)  # Fallback wait if convergence times out
 
         # Capture the photo with original filename format
         photo_filename = "photo.png"
@@ -574,6 +550,24 @@ def capture_photo():
             )
             picam2.configure(preview_config)
             picam2.start()
+            
+            # Re-apply anti-flicker settings to the restored preview
+            try:
+                picam2.set_controls({
+                    "AeEnable": True,
+                    "AeExposureMode": controls.AeExposureModeEnum.Normal,
+                    "AeMeteringMode": controls.AeMeteringModeEnum.CentreWeighted,
+                    "AeFlickerMode": controls.AeFlickerModeEnum.Manual,
+                    "AeFlickerPeriod": 16667,   # 60Hz period
+                    "AwbMode": controls.AwbModeEnum.Auto,
+                    "NoiseReductionMode": controls.draft.NoiseReductionModeEnum.HighQuality,
+                    "Sharpness": 1.0,
+                    "Contrast": 1.0,
+                    "Brightness": 0.0,
+                })
+                print("Anti-flicker settings restored to preview")
+            except Exception as e:
+                print(f"Failed to re-apply anti-flicker to restored preview: {e}")
 
 def transfer_photo():
     """Transfer the most recent photo to the central server."""
