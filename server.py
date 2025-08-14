@@ -515,9 +515,39 @@ def capture_photo():
 
         # Let AE/AWB converge for a moment
         try:
-            picam2.wait_for_convergence(timeout=2.0)
+            picam2.wait_for_convergence(timeout=3.0)
         except Exception:
             pass  # continue even if convergence times out
+
+        # If auto-exposure still causes banding, force manual exposure
+        # that's synchronized to the power line frequency
+        try:
+            # Get current exposure time from auto-exposure
+            metadata = picam2.capture_metadata()
+            current_exposure = metadata.get("ExposureTime", 16667)
+            
+            # Round to nearest multiple of flicker period to eliminate banding
+            flicker_period = 16667  # 60Hz period in microseconds
+            sync_exposure = round(current_exposure / flicker_period) * flicker_period
+            
+            # Ensure minimum exposure time
+            if sync_exposure < flicker_period:
+                sync_exposure = flicker_period
+                
+            print(f"Auto exposure: {current_exposure}μs, Sync exposure: {sync_exposure}μs")
+            
+            # Apply synchronized manual exposure to eliminate flicker
+            picam2.set_controls({
+                "AeEnable": False,          # Switch to manual
+                "ExposureTime": sync_exposure,  # Use flicker-synchronized exposure
+                "AnalogueGain": 1.0         # Keep gain reasonable
+            })
+            
+            # Wait a moment for the manual settings to take effect
+            time.sleep(0.5)
+            
+        except Exception as e:
+            print(f"Manual anti-flicker adjustment failed, using auto: {e}")
 
         # Capture the photo with original filename format
         photo_filename = "photo.png"
