@@ -178,11 +178,11 @@ try:
             flicker_period = 16667  # 60Hz - change to 20000 for 50Hz
             sync_exposure = round(current_exposure / flicker_period) * flicker_period
             
-            # Ensure reasonable exposure time
-            if sync_exposure < flicker_period:
-                sync_exposure = flicker_period
-            elif sync_exposure > flicker_period * 10:  # Cap at 10x flicker period
-                sync_exposure = flicker_period * 10
+            # Ensure reasonable exposure time - increase for darker conditions
+            if sync_exposure < flicker_period * 3:  # Minimum 3x flicker period for brightness
+                sync_exposure = flicker_period * 3
+            elif sync_exposure > flicker_period * 20:  # Increase cap for low light
+                sync_exposure = flicker_period * 20
                 
             print(f"Setting synchronized manual exposure: {sync_exposure}μs (was {current_exposure}μs)")
             
@@ -190,7 +190,7 @@ try:
             picam2.set_controls({
                 "AeEnable": False,
                 "ExposureTime": sync_exposure,
-                "AnalogueGain": 1.5  # Modest gain increase
+                "AnalogueGain": 3.0  # Increase gain for darker conditions
             })
             time.sleep(1.0)
             print("Manual anti-flicker exposure applied")
@@ -628,8 +628,8 @@ def capture_photo():
                     flicker_period = 16667
                     picam2.set_controls({
                         "AeEnable": False,
-                        "ExposureTime": flicker_period * 2,  # Conservative 2x flicker period
-                        "AnalogueGain": 1.5
+                        "ExposureTime": flicker_period * 6,  # Increase for darker conditions
+                        "AnalogueGain": 3.0  # Match startup gain
                     })
                 except Exception:
                     pass  # Fall back to auto if manual fails
