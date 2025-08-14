@@ -7,7 +7,6 @@ import socket
 import pkg_resources
 import platform
 import signal
-import zipfile
 
 def is_bookworm():
     """Check if the OS is Raspbian Bookworm."""
@@ -634,81 +633,32 @@ def capture_photo():
                 print(f"Failed to restore optimized settings: {e}")
 
 def transfer_photo():
-    """Transfer all photo files to the central server by zipping each PNG and SCP'ing the zip.
-    This approach reduces transfer size and sends files one-by-one to avoid timeouts when sending many
-    files at once.
-    """
+    """Transfer the most recent photo to the central server."""
     try:
-        # Find all photo files matching naming convention
+        # Find the most recent photo file
         photo_files = [f for f in os.listdir('.') if f.endswith('.png') and '_' in f]
         if not photo_files:
             return jsonify({"success": False, "error": "No photo file found to transfer."})
+        
+        # Get the most recent photo file
+        photo_files.sort(key=lambda x: os.path.getmtime(x), reverse=True)
+        photo_filename = photo_files[0]
 
+        # Determine the central server IP
         central_server_ip = get_central_server_ip()
         central_server_path = "piCamControlOutput/"  # Replace with the actual path on the central server
+        scp_command = f"scp {photo_filename} chadfinnerty@{central_server_ip}:{central_server_path}"
+        os.system(scp_command)
 
-        transferred = []
-        failed = []
+        print(f"Photo file {photo_filename} transferred to central server.")
 
-        # Send files oldest -> newest to avoid racing with new captures
-        photo_files.sort(key=lambda x: os.path.getmtime(x))
+        # Delete the photo file after transfer
+        os.remove(photo_filename)
+        print(f"Photo file {photo_filename} deleted from local storage.")
 
-        for photo in photo_files:
-            zip_name = f"{photo}.zip"
-            try:
-                # Create a compressed zip containing the single PNG
-                with zipfile.ZipFile(zip_name, 'w', compression=zipfile.ZIP_DEFLATED) as zf:
-                    zf.write(photo, arcname=os.path.basename(photo))
-
-                # Use scp with compression option (-C). Use subprocess for better error handling and a timeout.
-                scp_cmd = [
-                    "scp",
-                    "-C",  # ask scp to enable its compression
-                    zip_name,
-                    f"chadfinnerty@{central_server_ip}:{central_server_path}"
-                ]
-
-                print(f"Transferring {zip_name} to {central_server_ip}:{central_server_path}")
-                result = subprocess.run(scp_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=120)
-
-                if result.returncode == 0:
-                    # Remove the zip and original photo after successful transfer
-                    try:
-                        os.remove(zip_name)
-                    except Exception:
-                        pass
-                    try:
-                        os.remove(photo)
-                    except Exception:
-                        pass
-                    transferred.append(photo)
-                    print(f"Successfully transferred and removed {photo}")
-                else:
-                    err = result.stderr.decode('utf-8', errors='ignore')
-                    failed.append({"file": photo, "error": err})
-                    print(f"Failed to transfer {photo}: {err}")
-                    # Keep zip file for inspection and attempt next file
-
-            except subprocess.TimeoutExpired:
-                failed.append({"file": photo, "error": "scp timeout"})
-                print(f"Timeout transferring {photo}")
-            except Exception as e:
-                failed.append({"file": photo, "error": str(e)})
-                print(f"Error zipping/transferring {photo}: {e}")
-                # Clean up zip if it exists
-                try:
-                    if os.path.exists(zip_name):
-                        os.remove(zip_name)
-                except Exception:
-                    pass
-
-        if failed:
-            return jsonify({"success": False, "transferred": transferred, "failed": failed})
-
-        return jsonify({"success": True, "transferred": transferred})
-
+        return jsonify({"success": True, "message": "Photo transferred and deleted successfully."})
     except Exception as e:
-        print(f"Failed to transfer photo(s): {e}")
+        print(f"Failed to transfer photo: {e}")
         return jsonify({"success": False, "error": str(e)})
 
 def get_frame_rate(h264_file):
