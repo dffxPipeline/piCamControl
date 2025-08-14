@@ -452,7 +452,19 @@ def record():
 
 @app.route('/take_photo', methods=['POST'])
 def take_photo():
-    """Capture a photo and send it to the central server."""
+    """Handle photo capture and transfer requests."""
+    data = request.get_json()
+    action = data.get("action")
+    
+    if action == "capture_photo":
+        return capture_photo()
+    elif action == "transfer_photo":
+        return transfer_photo()
+    else:
+        return jsonify({"success": False, "error": "Unknown action"})
+
+def capture_photo():
+    """Capture a photo and save it locally."""
     current_resolution = None  # Initialize to avoid UnboundLocalError
     try:
         # Determine the desired resolution based on the camera type
@@ -492,21 +504,9 @@ def take_photo():
         new_photo_filename = f"{pi_name}_{timestamp}.png"
         os.rename(photo_filename, new_photo_filename)
 
-        # Determine the central server IP
-        central_server_ip = get_central_server_ip()
-        central_server_path = "piCamControlOutput/"  # Replace with the actual path on the central server
-        scp_command = f"scp {new_photo_filename} chadfinnerty@{central_server_ip}:{central_server_path}"
-        os.system(scp_command)
-
-        print(f"Photo file {new_photo_filename} transferred to central server.")
-
-        # Delete the photo file after transfer
-        os.remove(new_photo_filename)
-        print(f"Photo file {new_photo_filename} deleted from local storage.")
-
-        return jsonify({"success": True, "message": "Photo taken and sent to the central server successfully."})
+        return jsonify({"success": True, "message": "Photo captured successfully.", "filename": new_photo_filename})
     except Exception as e:
-        print(f"Failed to take photo: {e}")
+        print(f"Failed to capture photo: {e}")
         return jsonify({"success": False, "error": str(e)})
     finally:
         # Restore the preview configuration if it was changed
@@ -518,6 +518,35 @@ def take_photo():
             )
             picam2.configure(preview_config)
             picam2.start()
+
+def transfer_photo():
+    """Transfer the most recent photo to the central server."""
+    try:
+        # Find the most recent photo file
+        photo_files = [f for f in os.listdir('.') if f.endswith('.png') and '_' in f]
+        if not photo_files:
+            return jsonify({"success": False, "error": "No photo file found to transfer."})
+        
+        # Get the most recent photo file
+        photo_files.sort(key=lambda x: os.path.getmtime(x), reverse=True)
+        photo_filename = photo_files[0]
+
+        # Determine the central server IP
+        central_server_ip = get_central_server_ip()
+        central_server_path = "piCamControlOutput/"  # Replace with the actual path on the central server
+        scp_command = f"scp {photo_filename} chadfinnerty@{central_server_ip}:{central_server_path}"
+        os.system(scp_command)
+
+        print(f"Photo file {photo_filename} transferred to central server.")
+
+        # Delete the photo file after transfer
+        os.remove(photo_filename)
+        print(f"Photo file {photo_filename} deleted from local storage.")
+
+        return jsonify({"success": True, "message": "Photo transferred and deleted successfully."})
+    except Exception as e:
+        print(f"Failed to transfer photo: {e}")
+        return jsonify({"success": False, "error": str(e)})
 
 def get_frame_rate(h264_file):
     """Retrieve the frame rate of an H.264 file using ffprobe."""

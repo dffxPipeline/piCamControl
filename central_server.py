@@ -323,40 +323,96 @@ def update_servers():
 
 @app.route('/take_photo', methods=['POST'])
 def take_photo():
-    """Trigger photo capture on all Raspberry Pis and handle responses."""
+    """Trigger photo capture on all Raspberry Pis with two-phase process."""
     success = True
     messages = []
     errors = []
 
-    # Function to trigger photo capture on a single Raspberry Pi
+    print("=== STARTING PHOTO CAPTURE PROCESS ===")
+    
+    # PHASE 1: Capture photos on all Raspberry Pis concurrently
+    print("Phase 1: Capturing photos simultaneously on all devices...")
+    
     def capture_photo(ip):
         try:
             print(f"Triggering photo capture on {ip}...")
-            response = requests.post(f'http://{ip}:5000/take_photo', timeout=60)
+            response = requests.post(f'http://{ip}:5000/take_photo', 
+                                   json={'action': 'capture_photo'}, 
+                                   timeout=60)
             response.raise_for_status()
             data = response.json()
 
             if data.get('success', False):
-                print(f"Photo taken successfully on {ip}.")
+                print(f"Photo captured successfully on {ip}.")
                 return None  # No error
             else:
-                error_message = f"Error taking photo on {ip}: {data.get('error', 'Unknown error')}"
+                error_message = f"Error capturing photo on {ip}: {data.get('error', 'Unknown error')}"
                 print(error_message)
                 return error_message
         except requests.RequestException as e:
-            error_message = f"Error communicating with {ip}: {e}"
+            error_message = f"Error communicating with {ip} during capture: {e}"
             print(error_message)
             return error_message
 
-    # Use ThreadPoolExecutor to send requests concurrently
+    # Use ThreadPoolExecutor to capture photos concurrently
     with ThreadPoolExecutor() as executor:
-        results = list(executor.map(capture_photo, raspberry_pi_ips))
+        capture_results = list(executor.map(capture_photo, raspberry_pi_ips))
 
-    # Collect errors from the results
-    errors = [result for result in results if result]
-    if errors:
+    # Collect errors from the capture phase
+    capture_errors = [result for result in capture_results if result]
+    if capture_errors:
         success = False
+        errors.extend(capture_errors)
+        print(f"Phase 1 completed with {len(capture_errors)} errors out of {len(raspberry_pi_ips)} devices.")
+        return jsonify({'success': success, 'message': messages, 'errors': errors})
+    else:
+        print(f"Phase 1 completed successfully: All {len(raspberry_pi_ips)} photos captured simultaneously.")
 
+    # PHASE 2: Transfer photos sequentially to avoid network congestion
+    print("Phase 2: Transferring photos sequentially to central server...")
+    
+    def transfer_photo(ip):
+        try:
+            print(f"Starting photo transfer from {ip}...")
+            response = requests.post(f'http://{ip}:5000/take_photo', 
+                                   json={'action': 'transfer_photo'}, 
+                                   timeout=60)
+            response.raise_for_status()
+            data = response.json()
+
+            if data.get('success', False):
+                print(f"Photo transferred successfully from {ip}.")
+                return None  # No error
+            else:
+                error_message = f"Error transferring photo from {ip}: {data.get('error', 'Unknown error')}"
+                print(error_message)
+                return error_message
+        except requests.RequestException as e:
+            error_message = f"Error communicating with {ip} during transfer: {e}"
+            print(error_message)
+            return error_message
+
+    # Sequential transfer: one device at a time
+    transfer_results = []
+    for i, ip in enumerate(raspberry_pi_ips, 1):
+        result = transfer_photo(ip)
+        if result:
+            transfer_results.append(result)
+        print(f"Transfer progress: {i}/{len(raspberry_pi_ips)} devices completed")
+
+    # Collect errors from the transfer phase
+    errors.extend(transfer_results)
+    if transfer_results:
+        success = False
+        print(f"Phase 2 completed with {len(transfer_results)} errors out of {len(raspberry_pi_ips)} devices.")
+    else:
+        print(f"Phase 2 completed successfully: All {len(raspberry_pi_ips)} photos transferred and deleted.")
+
+    print("=== PHOTO CAPTURE PROCESS COMPLETED ===")
+    
+    if success:
+        messages.append(f"Successfully captured and transferred photos from all {len(raspberry_pi_ips)} devices.")
+    
     return jsonify({'success': success, 'message': messages, 'errors': errors})
 
 if __name__ == '__main__':
